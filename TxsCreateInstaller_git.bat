@@ -17,12 +17,10 @@ IF EXIST TorXakis (
 
 :CheckoutSpecifiedVersion
 ECHO Checking out tagged version %1
-REM Retrieved the tagged version from the repository
 git clone https://github.com/TorXakis/TorXakis.git
 cd TorXakis
 git checkout tags/%1
 cd ..
-rem svn checkout %TORXAKIS_REPOSITORY%/tags/%1 %TORXAKIS_SANDBOX%/%1
 ECHO Finished.
 
 :CreateTorXakisVersionInfo
@@ -40,10 +38,9 @@ ECHO Finished.
 
 :BuildTorXakis
 ECHO Building Torxakis executable
-rem CD %TORXAKIS_SANDBOX%\%1\torxakis
-stack setup
-stack init
+cd TorXakis
 stack clean
+cd ..
 call build.bat
 cd TorXakis
 FOR /F "tokens=* USEBACKQ" %%F IN (`stack.exe path --local-install-root`) DO (
@@ -58,8 +55,9 @@ ECHO Finished.
 
 :CreateInstallerWxs
 ECHO Generating Wxs file.
-CD WindowsInstaller
-java -jar WxsGenerator.jar %1 %TORXAKIS_SANDBOX% %2 %3 %4
+REM cd ..
+REM CD WindowsInstaller
+java -jar WxsGenerator.jar %1 . %2 %3 %4
 ECHO Finished.
 
 :CompileWxs
