@@ -3,3 +3,9 @@
 
 TorXakis/
 stack.yaml
+WxsGenerator.jar
+
+.settings
+.idea
+*.iml
+out/

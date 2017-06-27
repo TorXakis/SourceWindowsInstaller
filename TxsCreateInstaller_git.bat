@@ -6,26 +6,33 @@ IF [%3]==[] GOTO InvalidNumberArguments		REM CVC4 FOLDER
 IF [%4]==[] GOTO InvalidNumberArguments		REM TORXAKIS_VERSION
 IF not [%5]==[] GOTO InvalidNumberArguments		REM ONLY 4 arguments
 
+set TAG_NAME=%1
+set Z3_FOLDER=%2
+set CVC4_FOLDER=%3
+set TORXAKIS_VERSION=%4
+
 SET ORIGINAL_PATH=%PATH%
 SET ORIGINAL_LOC=%cd%
 
 :RemoveExistingRepo
-IF EXIST TorXakis (
-	ECHO Removing existing TorXakis repository
-    rmdir TorXakis /s /q
+if exist %TAG_NAME% (
+	echo removing existing tag folder...
+    rmdir %TAG_NAME% /s /q
 )
 
+mkdir %TAG_NAME%
+cd %TAG_NAME%
+
 :CheckoutSpecifiedVersion
-ECHO Checking out tagged version %1
-git clone https://github.com/TorXakis/TorXakis.git
-cd TorXakis
-git checkout tags/%1
-cd ..
+echo checking out tagged version %TAG_NAME%
+git clone https://github.com/torxakis/torxakis.git
+cd torxakis
+git checkout tags/%TAG_NAME%
 ECHO Finished.
 
 :CreateTorXakisVersionInfo
 ECHO Creating TorXakis VersionInfo.hs file
-SET VERSIONINFOFILE=TorXakis/sys/core/src/VersionInfo.hs
+SET VERSIONINFOFILE=sys/core/src/VersionInfo.hs
 ECHO at %VERSIONINFOFILE%
 echo {- > %VERSIONINFOFILE%
 type TorXakis\copyright.txt >> %VERSIONINFOFILE%
@@ -33,31 +40,54 @@ echo -} >> %VERSIONINFOFILE%
 echo module VersionInfo >> %VERSIONINFOFILE%
 echo where >> %VERSIONINFOFILE%
 echo version :: String >> %VERSIONINFOFILE%
-echo version = "%4" >> %VERSIONINFOFILE%
+echo version = "%TORXAKIS_VERSION%" >> %VERSIONINFOFILE%
 ECHO Finished.
+
+:CheckoutPlugins
+cd ..
+echo Checking out Eclipse plugin...
+git clone https://github.com/TorXakis/SupportEclipse.git
+cd SupportEclipse
+git checkout master
+cd ..
+echo Checking out NPP plugin...
+git clone https://github.com/TorXakis/SupportNotepadPlusPlus.git
+cd SupportNotepadPlusPlus
+git checkout master
+cd ..
+ECHO Finished!
 
 :BuildTorXakis
 ECHO Building Torxakis executable
-cd TorXakis
+cd torxakis
+copy ..\..\buildinfo.bat .
+call buildinfo.bat > sys/core/src/BuildInfo.hs
 stack clean
-cd ..
-call build.bat
-cd TorXakis
-FOR /F "tokens=* USEBACKQ" %%F IN (`stack.exe path --local-install-root`) DO (
-  copy %%F\bin\txsserver.exe bin\txsserver.exe
-  copy %%F\bin\txsui.exe bin\txsui.exe
-)
+stack build
+REM for /f "tokens=* usebackq" %%f in (`stack.exe path --local-install-root`) do (
+  REM copy %%f\bin\txsserver.exe bin\txsserver.exe
+  REM copy %%f\bin\txsui.exe bin\txsui.exe
+REM )
+set STACKLOCALINSTALLROOT=stack.exe path --local-install-root
+echo %STACKLOCALINSTALLROOT%
+copy %STACKLOCALINSTALLROOT%\bin\txsserver.exe bin\txsserver.exe
+copy %STACKLOCALINSTALLROOT%\bin\txsui.exe bin\txsui.exe
 
 :CheckTorXakisBuild
 IF NOT EXIST bin\txsserver.exe GOTO TorXakisBuildFailure
 IF NOT EXIST bin\txsui.exe GOTO TorXakisBuildFailure
+cd ..\..
 ECHO Finished.
+
+:EnsureWxsGenerator
+if not exist WxsGenerator.jar (
+	ECHO Can't find WxsGenerator.bat. Building...
+	call buildWxsGenerator.bat
+)
 
 :CreateInstallerWxs
 ECHO Generating Wxs file.
-REM cd ..
-REM CD WindowsInstaller
-java -jar WxsGenerator.jar %1 . %2 %3 %4
+java -jar WxsGenerator.jar %DATESTAMP% %Z3_FOLDER% %CVC4_FOLDER% %TORXAKIS_VERSION% TorXakis SupportEclipse SupportNotepadPlusPlus
 ECHO Finished.
 
 :CompileWxs
