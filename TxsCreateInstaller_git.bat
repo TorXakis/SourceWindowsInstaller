@@ -4,29 +4,32 @@ IF [%1]==[] GOTO InvalidNumberArguments		REM TAG_NAME
 IF [%2]==[] GOTO InvalidNumberArguments		REM Z3 FOLDER
 IF [%3]==[] GOTO InvalidNumberArguments		REM CVC4 FOLDER
 IF [%4]==[] GOTO InvalidNumberArguments		REM TORXAKIS_VERSION
-IF not [%5]==[] GOTO InvalidNumberArguments		REM ONLY 4 arguments
 
 set TAG_NAME=%1
 set Z3_FOLDER=%2
 set CVC4_FOLDER=%3
 set TORXAKIS_VERSION=%4
+set NOCACHE=%5
+IF [%5]==[] set NOCACHE=0
 
 SET ORIGINAL_PATH=%PATH%
 SET ORIGINAL_LOC=%cd%
 
 :RemoveExistingRepo
-if exist %TAG_NAME% (
+IF %NOCACHE%==1 IF exist %TAG_NAME%  (
 	echo removing existing tag folder...
-    rmdir %TAG_NAME% /s /q
+	rmdir %TAG_NAME% /s /q
+	mkdir %TAG_NAME%
 )
 
-mkdir %TAG_NAME%
 cd %TAG_NAME%
 
 :CheckoutSpecifiedVersion
 echo checking out tagged version %TAG_NAME%
-git clone https://github.com/torxakis/torxakis.git
-cd torxakis
+IF NOT EXIST TorXakis (
+	git clone https://github.com/torxakis/torxakis.git
+)
+cd TorXakis
 git checkout tags/%TAG_NAME%
 ECHO Finished.
 
@@ -45,24 +48,37 @@ ECHO Finished.
 
 :CheckoutPlugins
 cd ..
-echo Checking out Eclipse plugin...
-git clone https://github.com/TorXakis/SupportEclipse.git
-cd SupportEclipse
-git checkout master
-cd ..
-echo Checking out NPP plugin...
-git clone https://github.com/TorXakis/SupportNotepadPlusPlus.git
-cd SupportNotepadPlusPlus
-git checkout master
-cd ..
+echo Checking out plugins
+IF NOT EXIST SupportEclipse (
+	echo Checking out Eclipse plugin...
+	git clone https://github.com/TorXakis/SupportEclipse.git
+	cd SupportEclipse
+	git checkout master
+	cd ..
+) ELSE (
+	ECHO Using local SupportEclipse repo
+)
+IF NOT EXIST SupportNotepadPlusPlus (
+	echo Checking out NPP plugin...
+	git clone https://github.com/TorXakis/SupportNotepadPlusPlus.git
+	cd SupportNotepadPlusPlus
+	git checkout master
+	cd ..
+) ELSE (
+	ECHO Using local SupportNotepadPlusPlus repo
+)
 ECHO Finished!
 
 :BuildTorXakis
-ECHO Building Torxakis executable
 cd torxakis
+ECHO Removing old server and ui binaries
+del bin\txsserver.exe 2>nul
+del bin\txsui.exe     2>nul
+
+ECHO Creating BuildInfo.hs
 copy %ORIGINAL_LOC%\buildinfo.bat .
 call buildinfo.bat > sys/core/src/BuildInfo.hs
-stack clean
+ECHO Building Torxakis executable
 stack build
 
 REM no easy way to assign a variable from command's result, so we do this
@@ -75,9 +91,12 @@ for /f "tokens=* usebackq" %%f in (`stack.exe path --local-install-root`) do (
 IF NOT EXIST bin\txsserver.exe GOTO TorXakisBuildFailure
 IF NOT EXIST bin\txsui.exe GOTO TorXakisBuildFailure
 cd %ORIGINAL_LOC%
-ECHO Finished.
+ECHO Building TorXakis finished.
 
 :EnsureWxsGenerator
+IF %NOCACHE%==1 IF EXIST WxsGenerator.jar (
+	rm WxsGenerator.jar
+)
 if not exist WxsGenerator.jar (
 	ECHO Can't find WxsGenerator.jar - Building...
 	call buildWxsGenerator.bat
@@ -85,6 +104,10 @@ if not exist WxsGenerator.jar (
 
 :CreateInstallerWxs
 ECHO Generating Wxs file.
+IF EXIST %TAG_NAME%\WindowsInstaller (
+	ECHO Removing old "%TAG_NAME%\WindowsInstaller" folder
+	rmdir %TAG_NAME%\WindowsInstaller /s /q
+)
 java -jar WxsGenerator.jar %Z3_FOLDER% %CVC4_FOLDER% %TORXAKIS_VERSION% TorXakis SupportEclipse SupportNotepadPlusPlus
 ECHO Finished.
 
@@ -108,7 +131,7 @@ CD %ORIGINAL_LOC%
 GOTO END
 
 :InvalidNumberArguments
-ECHO Usage:	TxsCreateInstaller TagName Z3Folder CVC4Folder TorXakisVersionNumber
+ECHO Usage:	TxsCreateInstaller TagName Z3Folder CVC4Folder TorXakisVersionNumber [NoCache]
 GOTO END
 
 :TorXakisBuildFailure
