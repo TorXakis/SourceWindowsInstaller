@@ -26,28 +26,27 @@ public class WxsGenerator {
 	private FeatureInfo rootFi;
 	private String date = "";
 	private String versionNumber = "";
-	private String tagFolderName = "";
+	private String tagFolderPath = "";
 	private TDirectory z3Directory = null;
 	private TDirectory cvc4Directory = null;
 	private TDirectory exampsDirectory = null;
 	private TDirectory editorPluginsDirectory = null;
 	
-	
-	public WxsGenerator( 
+	public WxsGenerator(
 			TDirectory z3Directory,
 			TDirectory cvc4Directory, 
-			TDirectory exampsDirectory, 
+			TDirectory exampsDirectory,
 			TDirectory editorPluginsDirectory, 
 			String versionNumber, 
-			String tagFolderName ) {
+			String tagFolderPath) {
 		this.z3Directory = z3Directory;
 		this.cvc4Directory = cvc4Directory;
 		this.exampsDirectory = exampsDirectory;
 		this.editorPluginsDirectory = editorPluginsDirectory;
 		this.versionNumber = versionNumber;
-		this.tagFolderName = tagFolderName;
+		this.tagFolderPath = tagFolderPath;
 	}
-	
+
 	public String generate() {
 		String out = "";
 		Date today = new Date();
@@ -111,7 +110,6 @@ public class WxsGenerator {
 		return out;
 	}
 
-
 	private String generatePackage(String indent) {
 		String out = "";
 		
@@ -160,9 +158,9 @@ public class WxsGenerator {
 		return out;
 	}
 
-	private String generateUi(String indent ) {
+	private String generateUi(String indent) {
 		String out = "";
-		String installerFolder = tagFolderName + "\\WindowsInstaller\\";
+		String installerFolder = tagFolderPath + "\\WindowsInstaller\\";
 		
 		out += indent + "<WixVariable Id='WixUILicenseRtf' Value='" + installerFolder + "license.rtf' />\n";
 		out += indent + "<WixVariable Id='WixUIDialogBmp' Value='" + installerFolder + "dialog.bmp' />\n";
@@ -269,12 +267,12 @@ public class WxsGenerator {
 		
 		out += indent + "<!-- Torxakis Executable-->\n";
 		out += indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' KeyPath='yes'>\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='txsserver.exe' DiskId='1' Source='" + tagFolderName + "\\torxakis\\bin\\txsserver.exe' />\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='txsui.exe' DiskId='1' Source='" + tagFolderName + "\\torxakis\\bin\\txsui.exe' />\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakis.bat' DiskId='1' Source='" + tagFolderName + "\\torxakis\\bin\\torxakis.bat' />\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakisPort.bat' DiskId='1' Source='" + tagFolderName + "\\torxakis\\bin\\torxakisPort.bat' />\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakisServer.bat' DiskId='1' Source='" + tagFolderName + "\\torxakis\\bin\\torxakisServer.bat' />\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='license.txt' DiskId='1' Source='" + tagFolderName + "\\torxakis\\license.txt' />\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='txsserver.exe' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\txsserver.exe' />\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='txsui.exe' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\txsui.exe' />\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakis.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakis.bat' />\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakisPort.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakisPort.bat' />\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakisServer.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakisServer.bat' />\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='license' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\license' />\n";
 		out += indent + "</Component>\n";
 		out += indent + "\n";;
 		
@@ -295,7 +293,7 @@ public class WxsGenerator {
 			indent + "<Directory Id='" + getDirectoryId() + "' Name='Docs'>\n" +
 			indent + "\n" +		
 			indent + "\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID()  + "'>\n" +
-			//indent + "\t\t<File Id='" + getFileId() + "' Name='TorXakis.pdf' DiskId='1' Source='" + tagFolderName + "\\WindowsInstaller\\TorXakis.pdf' KeyPath='yes'/>\n" +
+			//indent + "\t\t<File Id='" + getFileId() + "' Name='TorXakis.pdf' DiskId='1' Source='" + tagFolderPath + "\\WindowsInstaller\\TorXakis.pdf' KeyPath='yes'/>\n" +
 			indent + "\t</Component>\n" +
 			indent + "\n" +
 			indent + "</Directory>\n" +
