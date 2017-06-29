@@ -1,12 +1,10 @@
-#stack working directory
-.stack-work
-
-TorXakis/
-stack.yaml
+# Locally generatable files and folders
+*.class
 WxsGenerator.jar
+v*/
 
+# IDE files and folders
 .settings
 .idea
 *.iml
 out/
-v*/
