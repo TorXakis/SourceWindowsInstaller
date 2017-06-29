@@ -1,11 +1,6 @@
 package nl.tno.torxakis.wxsgenerator;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
@@ -40,7 +35,7 @@ public class WxsGeneratorMain {
         final String torxakisFolderPath = tagFolderPath + "\\" + torxakisFolderName;
         final String examplesPath = torxakisFolderPath + "\\examps";
         final String eclipsePluginPath = tagFolderPath + "\\" + eclipseFolderName + "\\nl.tno.torxakis.language.update-site";
-        final String nppPluginPathName = tagFolderPath + "\\" + nppFolderName;
+        final String nppPluginPath = tagFolderPath + "\\" + nppFolderName;
         final String editorPluginsFolderPath = ".\\EditorPlugins";
 
         System.out.println("Ensuring WindowsInstaller directory...");
@@ -54,8 +49,10 @@ public class WxsGeneratorMain {
         try {
             System.out.println("prepareEditorPluginsFolder() with:");
             System.out.println("eclipsePluginPath = " + eclipsePluginPath);
-            System.out.println("tagFolderPath = " + tagFolderPath);
-            prepareEditorPluginsFolder(eclipsePluginPath, editorPluginsFolderPath, editorPluginsTargetPath);
+            System.out.println("nppPluginPath = " + nppPluginPath);
+            System.out.println("editorPluginsFolderPath = " + editorPluginsFolderPath);
+            System.out.println("editorPluginsTargetPath = " + editorPluginsTargetPath);
+            prepareEditorPluginsFolder(eclipsePluginPath, nppPluginPath, editorPluginsFolderPath, editorPluginsTargetPath);
 
             System.out.println("generateLicenseRtf() with:");
             System.out.println("tagFolderPath = " + tagFolderPath);
@@ -101,15 +98,16 @@ public class WxsGeneratorMain {
         fw.close();
     }
 
-    private static void prepareEditorPluginsFolder(String eclipsePluginPath, String editorPluginsFolderPath, String editorPluginsTargetPath) throws IOException {
+    private static void prepareEditorPluginsFolder(String eclipsePluginPath, String nppPluginPath, String editorPluginsFolderPath, String editorPluginsTargetPath) throws IOException {
         copyFolders(Paths.get(editorPluginsFolderPath), Paths.get(editorPluginsTargetPath));
 
         // Eclipse
-        String eclipsePluginTargetFolderPath = editorPluginsTargetPath + "\\Eclipse";
-        createZipFileFromDirectory(eclipsePluginPath, eclipsePluginTargetFolderPath);
+        createZipFileFromDirectory(eclipsePluginPath, editorPluginsTargetPath + "\\Eclipse");
 
-        // Notepad++ - disabled until we have proper .pdf
-//        copyNotepadPP(branchFolderName, editorPluginsFolderName + "\\Notepad++");
+        // Notepad++
+        String nppTargetPath = editorPluginsTargetPath + "\\Notepad++";
+        copyFolders(Paths.get(nppPluginPath), Paths.get(nppTargetPath));
+        deleteDirectory(new File(nppTargetPath + "\\.git"));
     }
 
     private static void copyFolders(Path source, Path target) throws IOException {
@@ -128,37 +126,22 @@ public class WxsGeneratorMain {
         });
     }
 
-//    private static void copyNotepadPP(String branchFolderName, String notepadFolder) {
-//        InputStream inStream = null;
-//        OutputStream outStream = null;
-//
-//        try {
-//            String sourceFileName = branchFolderName + "\\Notepad++\\TorXakis.xml";
-//            String destinationFileName = notepadFolder + "\\TorXakis.xml";
-//
-//            File source = new File(sourceFileName);
-//            File destination = new File(destinationFileName);
-//
-//            inStream = new FileInputStream(source);
-//            outStream = new FileOutputStream(destination);
-//
-//            byte[] buffer = new byte[1024];
-//            int length;
-//
-//            //copy the file content in bytes
-//            while ((length = inStream.read(buffer)) > 0) {
-//
-//                outStream.write(buffer, 0, length);
-//
-//            }
-//
-//            inStream.close();
-//            outStream.close();
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
+    public static boolean deleteDirectory(File dir) {
+        if(! dir.exists() || !dir.isDirectory())    {
+            return false;
+        }
+
+        String[] files = dir.list();
+        for(int i = 0, len = files.length; i < len; i++)    {
+            File f = new File(dir, files[i]);
+            if(f.isDirectory()) {
+                deleteDirectory(f);
+            }else   {
+                f.delete();
+            }
+        }
+        return dir.delete();
+    }
 
     private static TDirectory getDirectory(String rootFolderName) {
         TDirectory root = new TDirectory(rootFolderName);
