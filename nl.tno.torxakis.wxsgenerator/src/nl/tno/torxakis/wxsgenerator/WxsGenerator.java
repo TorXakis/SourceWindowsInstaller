@@ -292,7 +292,7 @@ public class WxsGenerator {
 			indent + "<!-- Torxakis Documentation -->\n" +
 			indent + "<Directory Id='" + getDirectoryId() + "' Name='Docs'>\n" +
 			indent + "\n" +		
-			indent + "\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID()  + "'>\n" +
+			indent + "\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID()  + "' KeyPath='yes'>\n" +
 			//indent + "\t\t<File Id='" + getFileId() + "' Name='TorXakis.pdf' DiskId='1' Source='" + tagFolderPath + "\\WindowsInstaller\\TorXakis.pdf' KeyPath='yes'/>\n" +
 			indent + "\t</Component>\n" +
 			indent + "\n" +
