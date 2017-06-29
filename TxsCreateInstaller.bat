@@ -1,19 +1,18 @@
 @ECHO off
 
-IF [%1]==[] GOTO InvalidNumberArguments		REM TAG_NAME
+IF [%1]==[] GOTO InvalidNumberArguments		REM TORXAKIS_VERSION
 IF [%2]==[] GOTO InvalidNumberArguments		REM Z3 FOLDER
 IF [%3]==[] GOTO InvalidNumberArguments		REM CVC4 FOLDER
-IF [%4]==[] GOTO InvalidNumberArguments		REM TORXAKIS_VERSION
 
-set TAG_NAME=%1
+set TORXAKIS_VERSION=%1
 set Z3_FOLDER=%2
 set CVC4_FOLDER=%3
-set TORXAKIS_VERSION=%4
-set NOCACHE=%5
-IF [%5]==[] set NOCACHE=0
+set NOCACHE=%4
+IF [%4]==[] set NOCACHE=0
 
 SET ORIGINAL_PATH=%PATH%
 SET ORIGINAL_LOC=%cd%
+set TAG_NAME=v%TORXAKIS_VERSION%
 
 :RemoveExistingRepo
 IF %NOCACHE%==1 IF exist %TAG_NAME%  (
@@ -131,7 +130,7 @@ CD %ORIGINAL_LOC%
 GOTO END
 
 :InvalidNumberArguments
-ECHO Usage:	TxsCreateInstaller TagName Z3Folder CVC4Folder TorXakisVersionNumber [NoCache]
+ECHO Usage:	TxsCreateInstaller TorXakisVersionNumber Z3Folder CVC4Folder [NoCache]
 GOTO END
 
 :TorXakisBuildFailure
