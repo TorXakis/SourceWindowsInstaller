@@ -1,0 +1,10 @@
+# Locally generatable files and folders
+*.class
+WxsGenerator.jar
+v*/
+
+# IDE files and folders
+.settings
+.idea
+*.iml
+out/
