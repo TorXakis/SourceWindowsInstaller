@@ -18,9 +18,11 @@ set TAG_NAME=v%TORXAKIS_VERSION%
 IF %NOCACHE%==1 IF exist %TAG_NAME%  (
 	echo removing existing tag folder...
 	rmdir %TAG_NAME% /s /q
-	mkdir %TAG_NAME%
 )
 
+IF not exist %TAG_NAME%  (
+    mkdir %TAG_NAME%
+)
 cd %TAG_NAME%
 
 :CheckoutSpecifiedVersion
