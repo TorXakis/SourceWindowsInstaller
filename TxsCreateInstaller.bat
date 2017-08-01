@@ -1,14 +1,12 @@
 @ECHO off
 
 IF [%1]==[] GOTO InvalidNumberArguments		REM TORXAKIS_VERSION
-IF [%2]==[] GOTO InvalidNumberArguments		REM Z3 FOLDER
-IF [%3]==[] GOTO InvalidNumberArguments		REM CVC4 FOLDER
+IF [%2]==[] GOTO InvalidNumberArguments		REM CONFIG FILE
 
 set TORXAKIS_VERSION=%1
-set Z3_FOLDER=%2
-set CVC4_FOLDER=%3
-set NOCACHE=%4
-IF [%4]==[] set NOCACHE=0
+set CONFIG_FILE=%2
+set NOCACHE=%3
+IF [%3]==[] set NOCACHE=0
 
 SET ORIGINAL_PATH=%PATH%
 SET ORIGINAL_LOC=%cd%
@@ -109,7 +107,7 @@ IF EXIST %TAG_NAME%\WindowsInstaller (
 	ECHO Removing old "%TAG_NAME%\WindowsInstaller" folder
 	rmdir %TAG_NAME%\WindowsInstaller /s /q
 )
-java -jar WxsGenerator.jar %Z3_FOLDER% %CVC4_FOLDER% %TORXAKIS_VERSION% TorXakis SupportEclipse SupportNotepadPlusPlus
+java -jar WxsGenerator.jar %CONFIG_FILE%
 ECHO Finished.
 
 :CopyInstallerImages
