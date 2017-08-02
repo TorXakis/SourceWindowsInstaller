@@ -8,8 +8,8 @@ public class WxsConfig {
     private boolean isInvalid = true;
     private List<String> errors = new ArrayList<>();
     private File configFile;
-    private String z3Folder;
-    private String cvc4Folder;
+    private String z3Url;
+    private String cvc4Url;
     private String version;
     private String torxakisFolder;
     private String eclipseFolder;
@@ -43,11 +43,11 @@ public class WxsConfig {
             return;
         }
         switch (parts[0]) {
-            case "z3Folder":
-                z3Folder = parts[1];
+            case "z3Url":
+                z3Url = parts[1];
                 break;
-            case "cvc4Folder":
-                cvc4Folder = parts[1];
+            case "cvc4Url":
+                cvc4Url = parts[1];
                 break;
             case "version":
                 version = parts[1];
@@ -67,22 +67,12 @@ public class WxsConfig {
     }
 
     private void validate() {
-        if (isBlank(z3Folder)) {
-            errors.add("z3Folder is blank.");
-        } else {
-            File z3Directory = new File(z3Folder);
-            if (!z3Directory.exists()) {
-                errors.add(String.format("z3Folder '%s' does not exist", z3Folder));
-            }
+        if (isBlank(z3Url)) {
+            errors.add("z3Url is blank.");
         }
 
-        if (isBlank(cvc4Folder)) {
-            errors.add("cvc4Folder is blank.");
-        } else {
-            File cvc4Directory = new File(cvc4Folder);
-            if (!cvc4Directory.exists()) {
-                errors.add(String.format("cvc4Folder '%s' does not exist", cvc4Folder));
-            }
+        if (isBlank(cvc4Url)) {
+            errors.add("cvc4Url is blank.");
         }
 
         if (isBlank(version)) {
@@ -135,12 +125,12 @@ public class WxsConfig {
         return configFile;
     }
 
-    String getZ3Folder() {
-        return z3Folder;
+    String getZ3Url() {
+        return z3Url;
     }
 
-    String getCvc4Folder() {
-        return cvc4Folder;
+    String getCvc4Url() {
+        return cvc4Url;
     }
 
     String getVersion() {
