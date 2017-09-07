@@ -12,7 +12,7 @@ public class WxsConfig {
     private String cvc4Url;
     private String version;
     private String torxakisFolder;
-    private String eclipseFolder;
+    private String eclipsePluginUrl;
     private String nppFolder;
 
     WxsConfig(String configFilePath) {
@@ -55,8 +55,8 @@ public class WxsConfig {
             case "torxakisFolder":
                 torxakisFolder = parts[1];
                 break;
-            case "eclipseFolder":
-                eclipseFolder = parts[1];
+            case "eclipsePluginUrl":
+                eclipsePluginUrl = parts[1];
                 break;
             case "nppFolder":
                 nppFolder = parts[1];
@@ -88,13 +88,8 @@ public class WxsConfig {
             }
         }
 
-        if (isBlank(eclipseFolder)) {
-            errors.add("eclipseFolder is blank.");
-        } else {
-            File eclipseDirectory = new File(eclipseFolder);
-            if (!eclipseDirectory.exists()) {
-                errors.add(String.format("eclipseFolder '%s' does not exist", eclipseFolder));
-            }
+        if (isBlank(eclipsePluginUrl)) {
+            errors.add("eclipsePluginUrl is blank.");
         }
 
         if (isBlank(nppFolder)) {
@@ -141,8 +136,8 @@ public class WxsConfig {
         return torxakisFolder;
     }
 
-    String getEclipseFolder() {
-        return eclipseFolder;
+    String getEclipsePluginUrl() {
+        return eclipsePluginUrl;
     }
 
     String getNppFolder() {
