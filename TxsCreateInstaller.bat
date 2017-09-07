@@ -48,15 +48,6 @@ ECHO Finished.
 :CheckoutPlugins
 cd ..
 echo Checking out plugins
-IF NOT EXIST SupportEclipse (
-	echo Checking out Eclipse plugin...
-	git clone https://github.com/TorXakis/SupportEclipse.git
-	cd SupportEclipse
-	git checkout master
-	cd ..
-) ELSE (
-	ECHO Using local SupportEclipse repo
-)
 IF NOT EXIST SupportNotepadPlusPlus (
 	echo Checking out NPP plugin...
 	git clone https://github.com/TorXakis/SupportNotepadPlusPlus.git

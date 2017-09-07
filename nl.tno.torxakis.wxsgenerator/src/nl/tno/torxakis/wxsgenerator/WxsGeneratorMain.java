@@ -32,14 +32,15 @@ public class WxsGeneratorMain {
         System.out.println("z3Url = " + z3Url);
         String cvc4Url = config.getCvc4Url();
         System.out.println("cvc4Url = " + cvc4Url);
+        String eclipsePluginUrl = config.getEclipsePluginUrl();
+        System.out.println("eclipsePluginUrl= " + eclipsePluginUrl);
+
         System.out.println("version = " + config.getVersion());
         System.out.println("torxakisFolder = " + config.getTorxakisFolder());
-        System.out.println("eclipseFolder= " + config.getEclipseFolder());
         System.out.println("nppFolder = " + config.getNppFolder());
 
         final String tagFolderPath = ".\\v" + config.getVersion();
         final String examplesPath = config.getTorxakisFolder() + "\\examps";
-        final String eclipsePluginPath = config.getEclipseFolder() + "\\nl.tno.torxakis.language.update-site";
         final String editorPluginsFolderPath = ".\\EditorPlugins";
 
         System.out.println("Ensuring WindowsInstaller directory...");
@@ -73,12 +74,15 @@ public class WxsGeneratorMain {
             cvc4Folder.mkdir();
             Files.move(cvc4exeFile, Paths.get(cvc4FolderPath.toString(), cvc4exeFileName));
 
+            System.out.println("Downloading Eclipse Plugin from:" + eclipsePluginUrl);
+            Path eclipsePluginZipFilePath = download(eclipsePluginUrl, tagFolderPath);
+
             System.out.println("prepareEditorPluginsFolder() with:");
-            System.out.println("eclipsePluginPath = " + eclipsePluginPath);
+            System.out.println("eclipsePluginZipFilePath = " + eclipsePluginZipFilePath);
             System.out.println("nppPluginPath = " + config.getNppFolder());
             System.out.println("editorPluginsFolderPath = " + editorPluginsFolderPath);
             System.out.println("editorPluginsTargetPath = " + editorPluginsTargetPath);
-            prepareEditorPluginsFolder(eclipsePluginPath, config.getNppFolder(), editorPluginsFolderPath, editorPluginsTargetPath);
+            prepareEditorPluginsFolder(eclipsePluginZipFilePath.toString(), config.getNppFolder(), editorPluginsFolderPath, editorPluginsTargetPath);
 
             System.out.println("generateLicenseRtf() with:");
             System.out.println("tagFolderPath = " + tagFolderPath);
@@ -163,11 +167,12 @@ public class WxsGeneratorMain {
         fw.close();
     }
 
-    private static void prepareEditorPluginsFolder(String eclipsePluginPath, String nppPluginPath, String editorPluginsFolderPath, String editorPluginsTargetPath) throws IOException {
+    private static void prepareEditorPluginsFolder(String eclipsePluginZipFilePath, String nppPluginPath, String editorPluginsFolderPath, String editorPluginsTargetPath) throws IOException {
+        deleteDirectory(new File(editorPluginsTargetPath));
         copyFolders(Paths.get(editorPluginsFolderPath), Paths.get(editorPluginsTargetPath));
 
         // Eclipse
-        createZipFileFromDirectory(eclipsePluginPath, editorPluginsTargetPath + "\\Eclipse");
+        Files.move(Paths.get(eclipsePluginZipFilePath), Paths.get(editorPluginsTargetPath + "\\Eclipse\\EclipsePlugin.zip"));
 
         // Notepad++
         String nppTargetPath = editorPluginsTargetPath + "\\Notepad++";
@@ -227,69 +232,6 @@ public class WxsGeneratorMain {
             if (dir.isFile()) {
                 directory.getFiles().add(new TFile(dir.toString()));
             }
-        }
-    }
-
-    public static void createZipFileFromDirectory(String srcDir, String eclipsePluginTargetFolderName) {
-        String zipFile = eclipsePluginTargetFolderName + "\\EclipsePlugin.zip";
-
-        try {
-            ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile));
-            File dir = new File(srcDir);
-
-            File[] files = dir.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                if (files[i].isDirectory()) {
-                    zipDirectory(srcDir, files[i], zos);
-                } else {
-                    zipFile(srcDir, files[i], zos);
-                }
-            }
-
-            // close the ZipOutputStream
-            zos.close();
-        } catch (IOException ioe) {
-            System.out.println("Error creating zip file" + ioe);
-        }
-
-    }
-
-    private static void zipFile(String root, File file, ZipOutputStream zos) throws IOException {
-        int length;
-
-        // create byte buffer
-        byte[] buffer = new byte[1024];
-
-        FileInputStream fis = new FileInputStream(file);
-
-        // begin writing a new ZIP entry, positions the stream to the start of the entry data
-        zos.putNextEntry(new ZipEntry(file.getAbsolutePath().replace(root + "\\", "")));
-
-        while ((length = fis.read(buffer)) > 0) {
-            zos.write(buffer, 0, length);
-        }
-        zos.closeEntry();
-        fis.close();
-    }
-
-    private static void zipDirectory(String root, File srcDir, ZipOutputStream zos) throws IOException {
-        // begin writing a new ZIP entry, positions the stream to the start of the entry data
-        zos.putNextEntry(new ZipEntry(srcDir.getName() + "\\"));
-        zos.closeEntry();
-
-        try {
-            File dir = new File(srcDir.getAbsolutePath());
-
-            File[] files = dir.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                if (files[i].isDirectory()) {
-                    zipDirectory(root, files[i], zos);
-                } else {
-                    zipFile(root, files[i], zos);
-                }
-            }
-        } catch (IOException ioe) {
-            System.out.println("Error creating zip file" + ioe);
         }
     }
 }
