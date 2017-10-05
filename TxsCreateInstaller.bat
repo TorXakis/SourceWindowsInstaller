@@ -106,6 +106,11 @@ echo Copying installer images
 copy *.bmp %TAG_NAME%\WindowsInstaller\
 echo Done
 
+:CopyDocs
+echo Copying docs folder
+copy docs %TAG_NAME%\WindowsInstaller\
+echo Done
+
 :CompileWxs
 ECHO Compiling Wxs File
 candle -o %TAG_NAME%\WindowsInstaller\ %TAG_NAME%\WindowsInstaller\TorXakis.wxs 

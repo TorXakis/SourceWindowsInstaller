@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modelling Examples</title>
+  <link rel="stylesheet" href="http://app.classeur.io/base-min.css" />
+  <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+</head>
+
+<body>
+  <div class="export-container"><h1 id="modelling-examples">Modelling Examples</h1>
+<p>Many of the modelling examples have a <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">java program</a> as SUT.<br>
+Please consult the <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">java program section</a> for instruction on working with <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">java program</a>s.</p>
+<h3 id="starter-examples">Starter examples</h3>
+<ul>
+<li><a href="#stimulus-response">Modelling Example - Stimulus Response</a></li>
+<li><a href="#echo">Modelling Example - Echo</a></li>
+</ul>
+<h3 id="advanced-examples">Advanced examples</h3>
+<ul>
+<li><a href="#shared-memory">Modelling Example - Shared Memory</a></li>
+<li><a href="#control">Modelling Example - Control Loop</a></li>
+<li><a href="#customers-orders">Modelling Example - Customers Orders</a></li>
+<li><a href="#lucky">Modelling Example - Lucky People</a></li>
+</ul>
+<p><a id="stimulus-response"></a></p>
+<h1 id="modelling-example-stimulus-response">Modelling Example: Stimulus Response</h1>
+<p>We want to test our <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">java program</a> <a href="https://github.com/TorXakis/TorXakis/blob/develop/examps/StimulusResponse/StimulusResponse.java">StimulusResponse.java</a>.<br>
+This is a simple program that receives an input (Stimulus) and responds to it (Response).<br>
+All the files used in this example can be found at <a href="https://github.com/TorXakis/TorXakis/tree/develop/examps/StimulusResponse">the example folder</a>.</p>
+<h2 id="channels">Channels</h2>
+<p>This program (our System Under Test - SUT) receives a stimulus and responds to it. Let’s <a href="https://github.com/TorXakis/TorXakis/wiki/ChanDefs">define the channels</a> needed for modelling this behaviour:</p>
+<pre><code>CHANDEF  Chans ::=  Stimulus; Response
+ENDDEF
+</code></pre>
+<h2 id="model">Model</h2>
+<p>The model should specify that the system uses two channels, one incoming for the stimulus and one outgoing for the response.<br>
+It should also specify that first a stimulus and then a response are communicated.<br>
+The <a href="https://github.com/TorXakis/TorXakis/wiki/ModelDefs">Model Definition</a> of this system in TorXakis is as follows:</p>
+<pre><code>MODELDEF Model ::=
+    CHAN IN    Stimulus
+    CHAN OUT   Response
+
+    BEHAVIOUR
+        Stimulus &gt;-&gt; Response
+ENDDEF
+</code></pre>
+<h2 id="sut-connection">SUT Connection</h2>
+<p>Our SUT communicates with the outside world by sending and receiving lines i.e. strings terminated by a line feed, over a socket at port 7890.<br>
+When TorXakis and the SUT run on the same machine (localhost) the <a href="https://github.com/TorXakis/TorXakis/wiki/CnectDefs">SUT connection</a> can be defined in TorXakis as follows:</p>
+<pre><code>CNECTDEF  Sut ::=
+    CLIENTSOCK
+
+    CHAN  OUT  Stimulus            HOST "localhost"  PORT 7890
+    ENCODE     Stimulus            -&gt;  ! ""
+
+    CHAN  IN   Response            HOST "localhost"  PORT 7890
+    DECODE     Response            &lt;-   ? s
+ENDDEF
+</code></pre>
+<h2 id="model-based-testing">Model Based Testing</h2>
+<ol>
+<li>Start the SUT: run the <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">Java program</a> in a command window.</li>
+</ol>
+<p><code>$&gt; java StimulusResponse</code></p>
+<ol start="2">
+<li>Start TorXakis: run the <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the StimulusResponse model describe above in another command window.</li>
+</ol>
+<p><code>$&gt; torxakis StimulusResponse.txs</code></p>
+<ol start="3">
+<li>Set the Model and SUT for testing: In TorXakis type the following commands:</li>
+</ol>
+<p><code>tester Model Sut</code></p>
+<ol start="4">
+<li>Test the SUT: In TorXakis type the following command:</li>
+</ol>
+<p><code>test 3</code></p>
+<p>TorXakis will perform the two communication actions, Stimulus and Response,<br>
+observe that the system under test communicates no additional output until<br>
+TorXakis times out (as expected), and finally conclude:</p>
+<pre><code>TXS &gt;&gt;  .....1: IN: Act { { ( Stimulus, [] ) } }
+TXS &gt;&gt;  .....2: OUT: Act { { ( Response, [] ) } }
+TXS &gt;&gt;  .....3: OUT: No Output (Quiescence)
+TXS &gt;&gt;  PASS
+</code></pre>
+<h3 id="errorneous-sut">Errorneous SUT</h3>
+<ol>
+<li>Start the errorneous SUT: run the errorneous <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">Java program</a> ‘StimulusNoResponse.java’ in a command window.</li>
+</ol>
+<p><code>$&gt; java StimulusNoResponse</code></p>
+<ol start="2">
+<li>Start TorXakis: run the <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the StimulusResponse model describe above in another command window.</li>
+</ol>
+<p><code>$&gt; torxakis StimulusResponse.txs</code></p>
+<ol start="3">
+<li>Set the Model and SUT for testing: In TorXakis type the following commands</li>
+</ol>
+<p><code>tester Model Sut</code></p>
+<ol start="4">
+<li>Test the erroneous SUT: In TorXakis type the following command:</li>
+</ol>
+<p><code>test 3</code></p>
+<p>TorXakis will perform the first communication action: Stimulus.<br>
+TorXakis will observe that the expected second communication action (Response) doesn’t occur,<br>
+causing the step to time out, so conclude:</p>
+<pre><code>TXS &gt;&gt;  .....1: IN: Act { { ( Stimulus, [] ) } }
+TXS &gt;&gt;  .....2: OUT: No Output (Quiescence)
+TXS &gt;&gt;  Expected:
+TXS &gt;&gt;  [ ( { Response[] }, [], [] ) ]
+TXS &gt;&gt;  FAIL: No Output (Quiescence)
+</code></pre>
+<h1 id="stimulus-response---loop">Stimulus Response - Loop</h1>
+<p>Let’s change our system to run in a loop of waiting for next Stimulus, instead of exiting after the first one. See <a href="https://github.com/TorXakis/TorXakis/blob/develop/examps/StimulusResponse/StimulusResponseLoop.java">StimulusResponseLoop.java</a> for the updated Java code.</p>
+<p>Our <a href="https://github.com/TorXakis/TorXakis/wiki/ChanDefs">channel definitions</a> don’t change:</p>
+<pre><code>CHANDEF Model ::=   Stimulus, Response
+ENDDEF
+</code></pre>
+<p>Our <a href="https://github.com/TorXakis/TorXakis/wiki/CnectDefs">SUT connection</a> stays the same, too:</p>
+<pre><code>CNECTDEF  Sut ::=
+    CLIENTSOCK
+
+    CHAN  OUT  Stimulus            HOST "localhost"  PORT 7890
+    ENCODE     Stimulus            -&gt;  ! ""
+
+    CHAN  IN   Response            HOST "localhost"  PORT 7890
+    DECODE     Response            &lt;-   ? s
+ENDDEF
+</code></pre>
+<p>In our <a href="https://github.com/TorXakis/TorXakis/wiki/ModelDefs">model definition</a>, we need a way to define the looping behaviour. We can make use of a recursive <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">procedure definition</a> for this:</p>
+<pre><code>PROCDEF stimResp [ Stimulus, Response ] ()
+    ::=
+        Stimulus  &gt;-&gt;  Response  &gt;-&gt;  stimResp [Stimulus,Response] ()
+ENDDEF
+</code></pre>
+<p>Now we can use this <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">procedure definition</a> in our <a href="https://github.com/TorXakis/TorXakis/wiki/ModelDefs">Model</a>:</p>
+<pre><code>MODELDEF Model ::=
+    CHAN IN    Stimulus
+    CHAN OUT   Response
+
+    BEHAVIOUR
+        stimResp [Stimulus,Response] ()
+ENDDEF
+</code></pre>
+<p>Now we can run model based tests on test our new SUT:</p>
+<ol>
+<li>Start the SUT: run the <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">Java program</a> in a command window.</li>
+</ol>
+<p><code>$&gt; java StimulusResponseLoop</code></p>
+<ol start="2">
+<li>Start TorXakis: run the <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the StimulusResponse model describe above in another command window.</li>
+</ol>
+<p><code>$&gt; torxakis StimulusResponseLoop.txs</code></p>
+<ol start="3">
+<li>Set the Model and SUT for testing: In TorXakis type the following commands:</li>
+</ol>
+<p><code>tester Model Sut</code></p>
+<ol start="4">
+<li>Test the SUT: In TorXakis type the following command:</li>
+</ol>
+<p><code>test 10</code></p>
+<p>TorXakis will perform the two communication actions, Stimulus and Response,<br>
+over and over again for as many test steps as we tell it to (in this example: 10).<br>
+Observing that SUT communicates a Response for every Stimulus as expected,<br>
+it will finally conclude:</p>
+<pre><code>TXS &gt;&gt;  .....1: IN: Act { { ( Stimulus, [] ) } }
+TXS &gt;&gt;  .....2: OUT: Act { { ( Response, [] ) } }
+TXS &gt;&gt;  .....3: IN: Act { { ( Stimulus, [] ) } }
+TXS &gt;&gt;  .....4: OUT: Act { { ( Response, [] ) } }
+TXS &gt;&gt;  .....5: IN: Act { { ( Stimulus, [] ) } }
+TXS &gt;&gt;  .....6: OUT: Act { { ( Response, [] ) } }
+TXS &gt;&gt;  .....7: IN: Act { { ( Stimulus, [] ) } }
+TXS &gt;&gt;  .....8: OUT: Act { { ( Response, [] ) } }
+TXS &gt;&gt;  .....9: IN: Act { { ( Stimulus, [] ) } }
+TXS &gt;&gt;  ....10: OUT: Act { { ( Response, [] ) } }
+TXS &gt;&gt;  PASS
+</code></pre>
+<p><a id="echo"></a></p>
+<h1 id="modelling-example-echo">Modelling Example: Echo</h1>
+<p>Let’s say we want to build a simple system that that receives an input and repeats it as is (AKA echoes it). Before writing any code for it, we’re going to model the solution and test it with TorXakis.</p>
+<p>The complete model file used in this example can be found at <a href="https://github.com/TorXakis/TorXakis/tree/develop/examps/Echo">the example folder</a>.</p>
+<h2 id="channels-1">Channels</h2>
+<p>This system is going to receive an input and echo it via the output.<br>
+For simplicity, let’s limit the inputs to only be integers. We can <a href="https://github.com/TorXakis/TorXakis/wiki/ChanDefs">define the channels</a> needed for modelling this behaviour as:</p>
+<pre><code>CHANDEF  Chans ::=  In, Out :: Int
+ENDDEF
+</code></pre>
+<h2 id="process">Process</h2>
+<p>We need to define the process of receiving the input and communicating it to the output channel. Here is our <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">process definition</a>:</p>
+<pre><code>PROCDEF  proc  [ In, Out :: Int ]  ( ) ::=
+        In ? x
+    &gt;-&gt; Out ! x
+    &gt;-&gt; proc [ In, Out ] ()
+ENDDEF
+</code></pre>
+<h2 id="model-1">Model</h2>
+<p>The model should specify that the system uses two channels, one incoming and one outgoing.<br>
+It should also specify that first an input and then an output are communicated.<br>
+The behaviour of the model should be the process that is defined above.<br>
+The <a href="https://github.com/TorXakis/TorXakis/wiki/ModelDefs">Model Definition</a> of this system in TorXakis is as follows:</p>
+<pre><code>MODELDEF  Model ::=
+        CHAN IN     In
+        CHAN OUT    Out
+
+        BEHAVIOUR   proc [ In, Out ] ( )
+ENDDEF
+</code></pre>
+<h2 id="model-based-testing-stepping-through-the-model">Model Based Testing: Stepping through the Model</h2>
+<p>We don’t have any SUT yet, but with TorXakis we can already step through the model to verify it.</p>
+<ol>
+<li>Start TorXakis: run <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the Echo model described above.</li>
+</ol>
+<p><code>$&gt; torxakis Echo.txs</code></p>
+<ol start="2">
+<li>Set the Model for stepping: In TorXakis type the following commands:</li>
+</ol>
+<p><code>stepper Model</code></p>
+<ol start="3">
+<li>Step through the model: In TorXakis type the following command:</li>
+</ol>
+<p><code>step 10</code></p>
+<p>TorXakis will perform the two communication actions with random integer inputs and display behaviour of the model at every step.<br>
+After required number of steps are reached, TorXakis will conclude:</p>
+<pre><code>TXS &gt;&gt;  .....1: Act { { ( In, [ -59 ] ) } }
+TXS &gt;&gt;  .....2: Act { { ( Out, [ -59 ] ) } }
+TXS &gt;&gt;  .....3: Act { { ( In, [ -50 ] ) } }
+TXS &gt;&gt;  .....4: Act { { ( Out, [ -50 ] ) } }
+TXS &gt;&gt;  .....5: Act { { ( In, [ -67 ] ) } }
+TXS &gt;&gt;  .....6: Act { { ( Out, [ -67 ] ) } }
+TXS &gt;&gt;  .....7: Act { { ( In, [ -7 ] ) } }
+TXS &gt;&gt;  .....8: Act { { ( Out, [ -7 ] ) } }
+TXS &gt;&gt;  .....9: Act { { ( In, [ -77 ] ) } }
+TXS &gt;&gt;  ....10: Act { { ( Out, [ -77 ] ) } }
+TXS &gt;&gt;  PASS
+</code></pre>
+<h2 id="simulator-definition">Simulator Definition</h2>
+<p>We still don’t have the real implementation of the system, but with TorXakis we don’t need it to mimic an actual test with an existing SUT.<br>
+TorXakis is capable of simulating the SUT based on the defined model. We just have to <a href="https://github.com/TorXakis/TorXakis/wiki/CnectDefs">define the connection</a> to be used by the Simulator:</p>
+<pre><code>CNECTDEF  Sim ::=
+        SERVERSOCK
+
+        CHAN IN   In                        HOST "localhost"  PORT 9999
+        DECODE    In ! fromString(s)        &lt;-  ? s
+
+        CHAN OUT  Out                       HOST "localhost"  PORT 9999
+        ENCODE    Out ? i                   -&gt;  ! toString(i)
+ENDDEF
+</code></pre>
+<p>Important points:</p>
+<ul>
+<li>Line 2: Since this connection will be used as a simulator it has to be a Server Socket, defined by SERVERSOCK as the connection type (<a href="https://github.com/TorXakis/TorXakis/wiki/CnectDefs">cnectType</a>).</li>
+<li>Line 4: <strong>“In”</strong> channel of the model is also the actual input of the simulator.</li>
+<li>Line 6: <strong>“Out”</strong> channel of the model is also the actual output of the simulator.</li>
+</ul>
+<p>Now we have a (simulated) SUT, so we can connect to it and execute Model Based Testing!</p>
+<h2 id="sut-connection-1">SUT Connection</h2>
+<p>TorXakis is going to communicate with the SUT by sending and receiving lines i.e. strings terminated by a line feed, over a socket at port 9999.<br>
+When TorXakis and the SUT run on the same machine (localhost) the <a href="https://github.com/TorXakis/TorXakis/wiki/CnectDefs">SUT connection</a> can be defined in TorXakis as follows:</p>
+<pre><code>CNECTDEF  Sut ::=
+        CLIENTSOCK
+
+        CHAN OUT  In                        HOST "localhost"  PORT 9999
+        ENCODE    In ? i                    -&gt;  ! toString(i)
+
+        CHAN IN   Out                       HOST "localhost"  PORT 9999
+        DECODE    Out ! fromString(s)       &lt;-  ? s
+ENDDEF
+</code></pre>
+<p>Important points:</p>
+<ul>
+<li>Line 2: Since this connection will be used to connect to the SUT it has to be a Client Socket, defined by CLIENTSOCK as the connection type (<a href="https://github.com/TorXakis/TorXakis/wiki/CnectDefs">cnectType</a>).</li>
+<li>Line 4: <strong>“In”</strong> channel of the model should be the <em>output</em> of TorXakis, since this is how TorXakis will communicate test inputs to the SUT.</li>
+<li>Line 6: <strong>“Out”</strong> channel of the model becomes the <em>input</em> of TorXakis.</li>
+</ul>
+<h2 id="model-based-testing-testing-the-simulated-sut">Model Based Testing: Testing the Simulated SUT</h2>
+<ol>
+<li>Start TorXakis: run <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the Echo model described above.</li>
+</ol>
+<p><code>$&gt; torxakis Echo.txs</code></p>
+<ol start="2">
+<li>Set the Model and Simulator for simulating the SUT: In TorXakis type the following command:</li>
+</ol>
+<p><code>simulator Model Sim</code></p>
+<p>TorXakis will start waiting for a connection, in order to start the Simulator.</p>
+<ol start="3">
+<li>Start another instance of TorXakis: In another command window, run <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the Echo model described above on a different port.</li>
+</ol>
+<p><code>$&gt; torxakisPort 9877 Echo.txs</code></p>
+<ol start="4">
+<li>Set the Model and SUT for testing: In TorXakis type the following command:</li>
+</ol>
+<p><code>tester Model Sut</code></p>
+<p>As soon as you enter this command, you’ll see that Simulator also responds:</p>
+<p><code>TXS &gt;&gt; Simulator started</code></p>
+<ol start="5">
+<li>Simulator works a bit slower than the Tester. To prevent unexpected delays to cause false negatives, we will increase delta times of tester.<br>
+In the command window of the tester, input following commands:</li>
+</ol>
+<pre><code>param param_Sim_deltaTime 5000
+param param_Sut_deltaTime 5000
+</code></pre>
+<ol start="6">
+<li>Start Simulator with a high number of steps, in order to not run out of steps before testing is finished:</li>
+</ol>
+<p><code>sim 20</code></p>
+<ol start="7">
+<li>Test the simulated SUT: In TorXakis type the following command:</li>
+</ol>
+<p><code>test 10</code></p>
+<p>TorXakis will test the (simulated) SUT with random integer inputs and display behaviour of the SUT at every step.<br>
+After required number of steps are reached, TorXakis will conclude:</p>
+<pre><code>TXS &gt;&gt;  .....1: IN: Act { { ( In, [ 1 ] ) } }
+TXS &gt;&gt;  .....2: OUT: Act { { ( Out, [ 1 ] ) } }
+TXS &gt;&gt;  .....3: IN: Act { { ( In, [ 14 ] ) } }
+TXS &gt;&gt;  .....4: OUT: Act { { ( Out, [ 14 ] ) } }
+TXS &gt;&gt;  .....5: IN: Act { { ( In, [ -82 ] ) } }
+TXS &gt;&gt;  .....6: OUT: Act { { ( Out, [ -82 ] ) } }
+TXS &gt;&gt;  .....7: IN: Act { { ( In, [ -67 ] ) } }
+TXS &gt;&gt;  .....8: OUT: Act { { ( Out, [ -67 ] ) } }
+TXS &gt;&gt;  .....9: IN: Act { { ( In, [ -4 ] ) } }
+TXS &gt;&gt;  ....10: OUT: Act { { ( Out, [ -4 ] ) } }
+TXS &gt;&gt;  PASS
+</code></pre>
+<p>And simulator TorXakis instance will be acting as the SUT:</p>
+<pre><code>TXS &gt;&gt;  .....1: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....2: IN: Act { { ( In, [ 1 ] ) } }
+TXS &gt;&gt;  .....3: OUT: Act { { ( Out, [ 1 ] ) } }
+TXS &gt;&gt;  .....4: IN: Act { { ( In, [ 14 ] ) } }
+TXS &gt;&gt;  .....5: OUT: Act { { ( Out, [ 14 ] ) } }
+TXS &gt;&gt;  .....6: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....7: IN: Act { { ( In, [ -82 ] ) } }
+TXS &gt;&gt;  .....8: OUT: Act { { ( Out, [ -82 ] ) } }
+TXS &gt;&gt;  .....9: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....10: IN: Act { { ( In, [ -67 ] ) } }
+TXS &gt;&gt;  ....11: OUT: Act { { ( Out, [ -67 ] ) } }
+TXS &gt;&gt;  ....12: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....13: IN: Act { { ( In, [ -4 ] ) } }
+TXS &gt;&gt;  ....14: OUT: Act { { ( Out, [ -4 ] ) } }
+TXS &gt;&gt;  ....15: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....16: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....17: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....18: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....19: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....20: OUT: No Output (Quiescence)
+TXS &gt;&gt;  PASS
+</code></pre>
+<h2 id="xml-based-communication">XML-Based communication</h2>
+<p>TorXakis is capable of XML-based communication with SUT’s and simulating them as well.<br>
+Let’s <a href="https://github.com/TorXakis/TorXakis/wiki/CnectDefs">define another SUT connection</a> and a simulator, both of which use XML-based communication.</p>
+<pre><code>CNECTDEF  Xut ::=
+        CLIENTSOCK
+
+        CHAN OUT  In                        HOST "localhost"  PORT 9999
+        ENCODE    In ? i                    -&gt;  ! toXml(i)
+
+        CHAN IN   Out                       HOST "localhost"  PORT 9999
+        DECODE    Out ! fromXml(s)          &lt;-  ? s
+ENDDEF
+
+CNECTDEF  Xim ::=
+        SERVERSOCK
+
+        CHAN IN   In                        HOST "localhost"  PORT 9999
+        DECODE    In ! fromXml(s)           &lt;-  ? s
+
+        CHAN OUT  Out                       HOST "localhost"  PORT 9999
+        ENCODE    Out ? i                   -&gt;  ! toXml(i)
+ENDDEF
+</code></pre>
+<p>Now we can simulate and test our proposed system as if it uses XML-Based communication:</p>
+<ol>
+<li>Start TorXakis: run <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the Echo model described above.</li>
+</ol>
+<p><code>$&gt; torxakis Echo.txs</code></p>
+<ol start="2">
+<li>Set the Model and Simulator for simulating the SUT:</li>
+</ol>
+<p><code>simulator Model Xim</code></p>
+<ol start="3">
+<li>Start another instance of TorXakis: In another command window, run <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the Echo model described above on a different port.</li>
+</ol>
+<p><code>$&gt; torxakisPort 9877 Echo.txs</code></p>
+<ol start="4">
+<li>Set the Model and SUT for testing:</li>
+</ol>
+<p><code>tester Model Xut</code></p>
+<ol start="5">
+<li>Remember to increase delta times of tester. In the command window of the tester, input following commands:</li>
+</ol>
+<pre><code>param param_Sim_deltaTime 5000
+param param_Sut_deltaTime 5000
+</code></pre>
+<ol start="6">
+<li>Start Simulator with a high number of steps:</li>
+</ol>
+<p><code>sim 20</code></p>
+<ol start="7">
+<li>Test the simulated SUT:</li>
+</ol>
+<p><code>test 10</code></p>
+<p>Output of Tester TorXakis instance:</p>
+<pre><code>TXS &gt;&gt;  .....1: IN: Act { { ( In, [ -78 ] ) } }
+TXS &gt;&gt;  .....2: OUT: Act { { ( Out, [ -78 ] ) } }
+TXS &gt;&gt;  .....3: IN: Act { { ( In, [ -67 ] ) } }
+TXS &gt;&gt;  .....4: OUT: Act { { ( Out, [ -67 ] ) } }
+TXS &gt;&gt;  .....5: IN: Act { { ( In, [ -62 ] ) } }
+TXS &gt;&gt;  .....6: OUT: Act { { ( Out, [ -62 ] ) } }
+TXS &gt;&gt;  .....7: IN: Act { { ( In, [ -52 ] ) } }
+TXS &gt;&gt;  .....8: OUT: Act { { ( Out, [ -52 ] ) } }
+TXS &gt;&gt;  .....9: IN: Act { { ( In, [ -86 ] ) } }
+TXS &gt;&gt;  ....10: OUT: Act { { ( Out, [ -86 ] ) } }
+TXS &gt;&gt;  PASS
+</code></pre>
+<p>Output of Simulator TorXakis instance:</p>
+<pre><code>TXS &gt;&gt;  .....1: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....2: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....3: IN: Act { { ( In, [ -78 ] ) } }
+TXS &gt;&gt;  .....4: OUT: Act { { ( Out, [ -78 ] ) } }
+TXS &gt;&gt;  .....5: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....6: IN: Act { { ( In, [ -67 ] ) } }
+TXS &gt;&gt;  .....7: OUT: Act { { ( Out, [ -67 ] ) } }
+TXS &gt;&gt;  .....8: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....9: IN: Act { { ( In, [ -62 ] ) } }
+TXS &gt;&gt;  ....10: OUT: Act { { ( Out, [ -62 ] ) } }
+TXS &gt;&gt;  ....11: IN: Act { { ( In, [ -52 ] ) } }
+TXS &gt;&gt;  ....12: OUT: Act { { ( Out, [ -52 ] ) } }
+TXS &gt;&gt;  ....13: IN: Act { { ( In, [ -86 ] ) } }
+TXS &gt;&gt;  ....14: OUT: Act { { ( Out, [ -86 ] ) } }
+TXS &gt;&gt;  ....15: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....16: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....17: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....18: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....19: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....20: OUT: No Output (Quiescence)
+TXS &gt;&gt;  PASS
+</code></pre>
+<p><a id="shared-memory"></a></p>
+<h1 id="modelling-example---shared-memory">Modelling Example - Shared Memory</h1>
+<p>How can we model shared memory, i.e., a global variable, in TorXakis?<br>
+For simplicity, we will assume that the shared memory stores a value of <a href="https://github.com/TorXakis/TorXakis/wiki/Data_Type">Data Type</a> Int.</p>
+<h2 id="basic-solution">Basic Solution</h2>
+<p>We define a process <em>memory</em> to manage the shared memory.<br>
+In the basic solution, this <em>memory</em> process has two communication channels of <a href="https://github.com/TorXakis/TorXakis/wiki/Data_Type">Data Type</a> Int: Read and Write.<br>
+This <em>memory</em> process is a recursive process, with one parameter: the current memory value.<br>
+The process<br>
+either provides the current value over the Read channel,<br>
+or receives a new value over the Write channel.<br>
+Since reading a value from memory doesn’t change its value, after reading, the <em>memory</em> process is instantiated with the current memory value.<br>
+Since writing a value to memory changes its value, after writing, the <em>memory</em> process is instantiated with the new value.</p>
+<pre><code>PROCDEF memory [ Read, Write :: Int ] ( value :: Int ) ::=
+        Read  ! value     &gt;-&gt;  memory [Read, Write]( value )
+    ##
+        Write ? newValue  &gt;-&gt;  memory [Read, Write]( newValue )
+ENDDEF
+</code></pre>
+<p>The <em>memory</em> process is used as follows, with initial value 0:</p>
+<pre><code>PROCDEF usage [ Read, Write :: Int ] ( ) ::=
+        memory [ Read, Write ] ( 0 )
+    |[ Read, Write ]|
+        someProcesses [ Read, Write ] ()
+ENDDEF
+</code></pre>
+<p>where someProcesses contains read statements like</p>
+<table>
+<tbody>
+<tr>
+<td>`Read ? x`</td>
+<th>_Read the value in memory_</th>
+</tr>
+<tr>
+<td>`Read ! 0`</td>
+<th>_Read the memory when the value is zero_  </th>
+</tr>
+<tr>
+<td>`Read ? x [[ x &lt; 0 ]]`</td>
+<th>_Read the memory when the value is less then zero_</th>
+</tr>
+</tbody>
+</table>
+<p>and write statements like</p>
+<table>
+<tbody>
+<tr>
+<td>`Write ! 123`</td>
+<th>_Write 123 to memory_</th>
+</tr>
+<tr>
+<td>`Write ? x`</td>
+<th>_Write an arbritrary value to memory_</th>
+</tr>
+<tr>
+<td>`Write ? x [[ x &gt; 123 ]]`</td>
+<th>_Write a value larger than 123 to memory_</th>
+</tr>
+</tbody>
+</table>
+<p>See the example <a href="https://github.com/TorXakis/TorXakis/tree/develop/examps/ReadWriteConflict">ReadWriteConflict</a> for more details.</p>
+<h2 id="advanced-solution">Advanced Solution</h2>
+<p>In the advanced solution, the <em>memory</em> process has only one communication channel: Memory.<br>
+This communication channel has as <a href="https://github.com/TorXakis/TorXakis/wiki/Data_Type">Data Type</a> MemoryAccess which is defined as follows</p>
+<pre><code>TYPEDEF MemoryAccess ::= Read  { value :: Int }
+                       | Write { newValue :: Int }
+ENDDEF
+</code></pre>
+<p>The <em>memory</em> process is still a recursive process, with one parameter: the current memory value.<br>
+The process<br>
+either provides the Read constructor with the current value over the Memory channel,<br>
+or receives a Write constructor with the new value over the Memory channel.<br>
+Since reading a value from memory doesn’t change its value, after reading, the <em>memory</em> process is instantiated with the current memory value.<br>
+Since writing a value to memory changes its value, after writing, the <em>memory</em> process is instantiated with the new value.</p>
+<pre><code>PROCDEF memory [ Memory :: MemoryAccess ] ( value :: Int ) ::=
+        Memory ! Read ( value )     &gt;-&gt;  memory [Memory](value)
+    ##
+        Memory ? x [[ isWrite(x) ]] &gt;-&gt;  memory [Memory](newValue(x))
+ENDDEF
+</code></pre>
+<p>The <em>memory</em> process is used as follows, with initial value 0:</p>
+<pre><code>PROCDEF usage [ Memory :: MemoryAccess ] ( ) ::=
+        memory [ Memory ] ( 0 )
+    |[ Memory ]|
+        someProcesses [ Memory ] ()
+ENDDEF
+</code></pre>
+<p>where someProcesses contains read statements like</p>
+<table>
+<tbody>
+<tr>
+<td>`Memory ? x [[ isRead(x) ]]`</td>
+<th>_Read the value in memory_</th>
+</tr>
+<tr>
+<td>`Memory ! Read(0)`</td>
+<th>_Read the memory when the value is zero_  </th>
+</tr>
+<tr>
+<td>`Memory ? x [[ isRead(x) /\ (value(x) &lt; 0) ]]`</td>
+<th>_Read the memory when the value is less then zero_  </th>
+</tr>
+</tbody>
+</table>
+<p>and write statements like</p>
+<table>
+<tbody>
+<tr>
+<td>`Memory ! Write(123)`</td>
+<th>_Write 123 to memory_</th>
+</tr>
+<tr>
+<td>`Memory ? x [[ isWrite(x) ]]`</td>
+<th>_Write an arbritrary value to memory_</th>
+</tr>
+<tr>
+<td>`Memory ? x [[ isWrite(x) /\ (newValue(x) &gt; 123) ]]`</td>
+<th>_Write a value larger than 123 to memory_</th>
+</tr>
+</tbody>
+</table>
+<p>The advanced solution has a better performance in TorXakis.</p>
+<h1 id="a-idcontrolamodelling-example---control-loop"><a id="control"></a>Modelling Example - Control Loop</h1>
+<p>In this example, we model a control loop.<br>
+The control loop consists out of three processes: produce, measure, and correct.<br>
+Between these processes material and reports are exchanged.<br>
+The three processes repeat the following steps:</p>
+<ul>
+<li>The produce process makes the material according to specification,</li>
+<li>The measure process measures the produced material, and</li>
+<li>The correct process determines corrections based on the differences between specification and measurement.</li>
+</ul>
+<p>After briefly introducing the data types and function that are used in this model, we will discuss these three processes in order of simplicity. We will end with the complete control loop model.</p>
+<p>All the files used in this example can be found at <a href="https://github.com/TorXakis/TorXakis/tree/develop/examps/ControlLoop">the example folder</a>.</p>
+<h2 id="data-types">Data Types</h2>
+<p>All <a href="https://github.com/TorXakis/TorXakis/wiki/Data_Type">data types</a> are Cartesian Products of two integers: id and value.</p>
+<pre><code>TYPEDEF ProduceReport ::= ProduceReport { id, value :: Int } ENDDEF
+TYPEDEF MeasureReport ::= MeasureReport { id, value :: Int } ENDDEF
+TYPEDEF Correction    ::= Correction    { id, value :: Int } ENDDEF
+</code></pre>
+<h2 id="channels-2">Channels</h2>
+<p>Once we have the <a href="https://github.com/TorXakis/TorXakis/wiki/Data_Type">data types</a>, <a href="https://github.com/TorXakis/TorXakis/wiki/ChanDefs">channels</a> needed for modelling this flow can be defined as:</p>
+<pre><code>CHANDEF Chans ::=    In_Material     :: Int
+                   ; Correction      :: Correction
+                   ; ProduceReport   :: ProduceReport
+                   ; Material        :: Int
+                   ; MeasureReport   :: MeasureReport
+                   ; Out_Material    :: Int
+ENDDEF
+</code></pre>
+<h2 id="functions">Functions</h2>
+<h3 id="sgn">sgn</h3>
+<p>The sign <a href="https://github.com/TorXakis/TorXakis/wiki/FuncDefs">function</a>: zero for zero, +1 for all positive numbers, and -1 for all negative numbers.</p>
+<pre><code>FUNCDEF sgn ( x :: Int ) :: Int ::=
+    IF x &gt; 0 
+        THEN 1
+        ELSE IF x &lt; 0
+                THEN -1
+                ELSE 0 
+             FI
+    FI
+ENDDEF
+</code></pre>
+<h2 id="processes">Processes</h2>
+<h3 id="correct">correct</h3>
+<p><img src="https://github.com/TorXakis/TorXakis/raw/develop/examps/ControlLoop/correct.jpg" alt="Correction process"></p>
+<p>Correct is a repeating process of corrections.<br>
+All corrections need two inputs: a production report and a measurement report.<br>
+These reports must of course refer to the same material.<br>
+All corrections result in one output: a correction.<br>
+A correction contains</p>
+<ul>
+<li>a reference to the material,</li>
+<li>a value.</li>
+</ul>
+<p>The correction value has a relation with the two inputs: the intended and measured values as reported in the production and measurement reports, respectively. This relation is expressed as a constraint between the correction, intended, and measured values.</p>
+<p>The behaviour of the correct process is captured in the following recursive TorXakis <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">Process Definition</a>:</p>
+<pre><code>PROCDEF correct [ In_ProduceReport      :: ProduceReport
+                ; In_MeasureReport      :: MeasureReport
+                ; Out_Correction        :: Correction
+                ] ( ) ::=
+        In_ProduceReport ? pr | In_MeasureReport ? mr [[ id(pr) == id(mr) ]]
+    &gt;-&gt; Out_Correction ? correction [[ ( id(correction) == id(mr) ) /\ ( sgn(value(correction)) == sgn( value(pr) - value(mr) ) )]]
+    &gt;-&gt; correct [ In_ProduceReport, In_MeasureReport, Out_Correction ] ( )
+ENDDEF
+</code></pre>
+<h3 id="measure">measure</h3>
+<p><img src="https://github.com/TorXakis/TorXakis/raw/develop/examps/ControlLoop/measure.jpg" alt="Measuring process"></p>
+<p>Measure is a repeating process of measurements.<br>
+All measurements need one input: the material to measure.<br>
+All measurements result in two outputs: the measured material and a report containing the measurement results.<br>
+The order of these two outputs is not constrained, i.e.,</p>
+<pre><code>Out_Material ||| Out_Report
+</code></pre>
+<p>Measure is modelled without buffers for material. So the behaviour of measure with respect to material is the alternating sequence of material coming in and material going out, i.e.,</p>
+<pre><code>In_Material &gt;-&gt; Out_Material &gt;-&gt; In_Material &gt;-&gt; Out_Material &gt;-&gt; In_Material &gt;-&gt; ...
+</code></pre>
+<p>Incoming material is associated with an identifier. This indentifier not only must be associated with the outgoing material but also be present in the generated report.</p>
+<p>The behaviour of the measure process is captured in the following recursive TorXakis <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">Process Definition</a>:</p>
+<pre><code>PROCDEF measure [ In_Material   :: Int
+                ; Out_Report    :: MeasureReport
+                ; Out_Material  :: Int
+                ]( ) ::=
+        In_Material ? id
+    &gt;-&gt; (
+                Out_Report ? mr [[ id(mr) == id ]]
+            |||
+                (
+                        Out_Material ! id 
+                    &gt;-&gt; measure [ In_Material, Out_Report, Out_Material ] ()
+                )
+        )
+ENDDEF
+</code></pre>
+<h3 id="produce">produce</h3>
+<p><img src="https://github.com/TorXakis/TorXakis/raw/develop/examps/ControlLoop/produce.jpg" alt="Production process"></p>
+<p>Produce is a repeating process of production steps.<br>
+All production steps results in two outputs: material and report.<br>
+The order of these two outputs is not constrained, i.e.,</p>
+<pre><code>Out_Material ||| Out_Report
+</code></pre>
+<p>In the first production step, only material is needed as input.<br>
+In all other production steps, both material and correction are needed as inputs.<br>
+The order of these two inputs is not constrained, i.e.,</p>
+<pre><code>In_Material ||| In_Correction
+</code></pre>
+<p>All inputs are required to produce the output. So for all, but the first production step holds</p>
+<pre><code>( In_Material ||| In_Correction ) &gt;&gt;&gt; ( Out_Material ||| Out_Report )
+</code></pre>
+<p>Produce is modelled without buffers for material. So the behaviour of produce with respect to material is the alternating sequence of material coming in and material going out, i.e.,</p>
+<pre><code>In_Material &gt;-&gt; Out_Material &gt;-&gt; In_Material &gt;-&gt; Out_Material &gt;-&gt; In_Material &gt;-&gt; ...
+</code></pre>
+<p>A correction is only obtained after both the production report and the outgoing material are used. To be precise, to obtain a correction both a production report and a measure report are needed. The latter is obtained when the material is measured. This requirement on order can be express as follows:</p>
+<pre><code>( Out_Material ||| Out_Report ) &gt;&gt;&gt; In_Correction
+</code></pre>
+<p>Incoming material is associated with an identifier. This indentifier not only must be associated with the outgoing material but also be present in the generated report and in the resulting correction.</p>
+<p>The behaviour of the produce process is captured in the following TorXakis <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">Process Definitions</a>.<br>
+These two processes were needed to capture the difference between the first and all other production steps.</p>
+<pre><code>PROCDEF produce [ In_Material           :: Int
+                ; In_Correction         :: Correction
+                ; Out_Material          :: Int
+                ; Out_ProduceReport     :: ProduceReport
+                ]( ) ::=
+        In_Material ? id
+    &gt;-&gt; produceLoop [In_Material, In_Correction, Out_Material, Out_ProduceReport] (id)
+ENDDEF
+
+PROCDEF produceLoop [ In_Material           :: Int
+                    ; In_Correction         :: Correction
+                    ; Out_Material          :: Int
+                    ; Out_ProduceReport     :: ProduceReport
+                    ]( id :: Int ) ::=
+    (       
+            Out_Material ! id 
+        &gt;-&gt; In_Material ? nextId
+        &gt;-&gt; EXIT ! nextId
+    )
+    |[ Out_Material ]|
+    (
+        (
+                ( Out_Material ! id &gt;-&gt; EXIT )
+            |||
+                ( Out_ProduceReport ? pr [[ id(pr) == id ]] &gt;-&gt; EXIT )
+        ) &gt;&gt;&gt;
+            ( In_Correction ? correction [[ id (correction) == id ]] &gt;-&gt; EXIT ? nextId :: Int )
+    )
+    &gt;&gt;&gt; ACCEPT ? nextId :: Int IN
+        produceLoop [In_Material, In_Correction, Out_Material, Out_ProduceReport] (nextId)
+    NI
+ENDDEF
+</code></pre>
+<h3 id="control-loop">control loop</h3>
+<p><img src="https://github.com/TorXakis/TorXakis/raw/develop/examps/ControlLoop/controlloop.jpg" alt="Control loop"></p>
+<p>The behaviour of the control loop process is captured in the following TorXakis <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">Process Definitions</a>.<br>
+The three earlier described processes are linked together using their communication channels.</p>
+<pre><code>PROCDEF model [ In_Material                 :: Int
+              ; Correction                  :: Correction
+              ; ProduceReport               :: ProduceReport
+              ; Material                    :: Int
+              ; MeasureReport               :: MeasureReport
+              ; Out_Material                :: Int
+              ]( ) ::=
+        (
+                produce [ In_Material, Correction, Material, ProduceReport ] ( )
+            |[ Material]|
+                measure [ Material, MeasureReport, Out_Material ] ( )
+        )
+    |[ ProduceReport, MeasureReport, Correction ]|
+        correct [ ProduceReport, MeasureReport, Correction ] ( )
+ENDDEF
+</code></pre>
+<h2 id="model-2">Model</h2>
+<p>Since the above Control Loop process (model) puts everything together, now we can <a href="https://github.com/TorXakis/TorXakis/wiki/ModelDefs">define our model</a> as follows:</p>
+<pre><code>MODELDEF Model ::=
+    CHAN IN
+    CHAN OUT    In_Material
+    ,           Correction
+    ,           ProduceReport
+    ,           Material
+    ,           MeasureReport
+    ,           Out_Material
+
+    SYNC        {In_Material}
+    ,           {Correction}
+    ,           {ProduceReport}
+    ,           {Material}
+    ,           {MeasureReport}
+    ,           {Out_Material}
+    ,           {ProduceReport | MeasureReport}
+
+    BEHAVIOUR
+        model [In_Material, Correction, ProduceReport, Material, MeasureReport, Out_Material]()
+ENDDEF
+</code></pre>
+<h2 id="stepping-through-the-model">Stepping through the Model</h2>
+<ol>
+<li>Start TorXakis: run <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the Control Loop model describe above in a command window.</li>
+</ol>
+<p><code>$&gt; torxakis ControlLoopModel.txs</code></p>
+<ol start="2">
+<li>Set the Model for stepping: In TorXakis type the following commands:</li>
+</ol>
+<p><code>stepper Model</code></p>
+<ol start="3">
+<li>Step through the Model: In TorXakis type the following command:</li>
+</ol>
+<p><code>test 10</code></p>
+<p>TorXakis will perform the actions at each step, as long as the Model behaves as expected or the number of steps are reached, then finally conclude:</p>
+<pre><code>TXS &gt;&gt;  .....1: Act { { ( In_Material, [ 18 ] ) } }
+TXS &gt;&gt;  .....2: Act { { ( Material, [ 18 ] ) } }
+TXS &gt;&gt;  .....3: Act { { ( In_Material, [ -79 ] ) } }
+TXS &gt;&gt;  .....4: Act { { ( Out_Material, [ 18 ] ) } }
+TXS &gt;&gt;  .....5: Act { { ( MeasureReport, [ MeasureReport(18,-37) ] ) ( ProduceReport, [ ProduceReport(18,-73) ] ) } }
+TXS &gt;&gt;  .....6: Act { { ( Correction, [ Correction(18,-80) ] ) } }
+TXS &gt;&gt;  .....7: Act { { ( Material, [ -79 ] ) } }
+TXS &gt;&gt;  .....8: Act { { ( In_Material, [ -41 ] ) } }
+TXS &gt;&gt;  .....9: Act { { ( MeasureReport, [ MeasureReport(-79,-32) ] ) ( ProduceReport, [ ProduceReport(-79,-25) ] ) } }
+TXS &gt;&gt;  ....10: Act { { ( Out_Material, [ -79 ] ) } }
+TXS &gt;&gt;  PASS
+</code></pre>
+<p><a id="customers-orders"></a></p>
+<h1 id="modelling-example---customers-orders">Modelling Example - Customers Orders</h1>
+<h2 id="introduction">Introduction</h2>
+<p>Systems typically deal with large amounts of data. Data is often encoded in an <a href="https://en.wikipedia.org/wiki/XML" title="XML">Extensible Markup Language</a>, which is defined in an <a href="https://en.wikipedia.org/wiki/XSD" title="XSD">XML Schema Definition</a>.</p>
+<p>This example is inspired by Microsoft’s <a href="https://msdn.microsoft.com/en-us/library/bb387025.aspx">sample XML File: Customers and Orders</a> and associated <a href="https://msdn.microsoft.com/en-us/library/bb675181.aspx">Sample XSD File: Customers and Orders</a>.<br>
+In the screenshot below, we see a folding editor in which one instance of each data type is unfolded.<br>
+<img src="https://github.com/TorXakis/TorXakis/raw/develop/examps/CustomersOrders/CustomersOrders.xml.jpg" alt=""></p>
+<p>All the files used in this example can be found at <a href="https://github.com/TorXakis/TorXakis/tree/develop/examps/CustomersOrders">the example folder</a>.</p>
+<h2 id="system-under-test">System Under Test</h2>
+<p>The system under test (SUT) communicates asynchronously.</p>
+<p>The system under test has two input channels.</p>
+<ol>
+<li>On one input channel, the system is always willing to receive a new customer (in xml).</li>
+<li>On the other input channel, the system is always willing to receive a new order (in xml) of existing customers.</li>
+</ol>
+<p>The system under test has one output channel.<br>
+On the output channel, the system will send a report that contains the received customers and orders so far (in xml).<br>
+After the initial report, a report will only be sent when additional input has been received.<br>
+A new report can incorporate multiple inputs, i.e., not every input necessarily results in an output.</p>
+<p>The code for this SUT is implemented in <a href="https://github.com/TorXakis/TorXakis/blob/develop/examps/CustomersOrders/CustomersOrders.java">this java file</a>.</p>
+<h2 id="torxakis-specification">TorXakis specification</h2>
+<p>Using the <a href="https://msdn.microsoft.com/en-us/library/bb675181.aspx">sample XSD File: Customers and Orders</a>, it is straightforward to define not only the following <a href="https://github.com/TorXakis/TorXakis/wiki/TypeDefs">Type Definitions</a></p>
+<pre><code>TYPEDEF RootType ::=
+    C_RootType { customers :: List_CustomerType ; orders :: List_OrderType }
+ENDDEF
+
+TYPEDEF List_CustomerType ::=
+      CNil_CustomerType
+    | Cstr_CustomerType { head :: CustomerType; tail :: List_CustomerType }
+ENDDEF
+
+TYPEDEF List_OrderType ::=
+      CNil_OrderType
+    | Cstr_OrderType { head :: OrderType; tail :: List_OrderType }
+ENDDEF
+
+TYPEDEF CustomerType ::=
+    C_CustomerType { companyName :: String
+                   ; contactName :: String
+                   ; contactTitle :: String
+                   ; phone :: String
+                   ; fax :: Conditional_string
+                   ; fullAddress :: AddressType
+                   ; customerID :: Int }
+ENDDEF
+
+TYPEDEF AddressType ::=
+    C_AddressType { address :: String
+                  ; city :: String
+                  ; region :: String
+                  ; postalCode :: String
+                  ; country :: String }
+ENDDEF
+
+TYPEDEF OrderType ::=
+    C_OrderType { customerID :: Int
+                ; employeeID :: Int
+                ; orderDate :: Int
+                ; requiredDate :: Int
+                ; shipInfo :: ShipInfoType }
+ENDDEF
+
+TYPEDEF ShipInfoType ::=
+    C_ShipInfoType { shipVia :: Int
+                   ; freight :: Int
+                   ; shipName :: String
+                   ; shipAddress :: String
+                   ; shipCity :: String
+                   ; shipRegion :: String
+                   ; shipPostalCode :: String
+                   ; shipCountry :: String
+                   ; shippedDate :: Conditional_dateTime }
+ENDDEF
+</code></pre>
+<p>but also the following <a href="https://github.com/TorXakis/TorXakis/wiki/FuncDefs">Function Definitions</a> to capture the constraints on these types:</p>
+<pre><code>FUNCDEF isValid_RootType ( t :: RootType ) :: Bool ::=
+       isValid_List_CustomerType(customers(t), 0, CAbsent_Int)
+    /\ isValid_List_OrderType(orders(t), 0, CAbsent_Int)
+    /\ uniqueCustomerIDs(customers(t))
+    /\ validCustomerIDsInOrders(orders(t),customers(t))
+ENDDEF
+
+FUNCDEF uniqueCustomerIDs ( x :: List_CustomerType ) :: Bool ::=
+    IF (isCNil_CustomerType (x))
+        THEN True
+        ELSE not(containsCustomerID(customerID(head (x)), tail(x))) /\ uniqueCustomerIDs(tail(x))
+    FI
+ENDDEF
+
+FUNCDEF containsCustomerID ( cid :: Int; x :: List_CustomerType ) :: Bool ::=
+    IF (isCNil_CustomerType (x))
+        THEN False
+        ELSE IF ( customerID(head (x)) == cid )
+                 THEN True
+                 ELSE containsCustomerID (cid, tail(x))
+             FI
+    FI
+ENDDEF
+
+FUNCDEF validCustomerIDsInOrders ( o :: List_OrderType; c :: List_CustomerType ) :: Bool ::=
+    IF (isCNil_OrderType (o))
+        THEN True
+        ELSE containsCustomerID(customerID(head(o)), c) /\ validCustomerIDsInOrders (tail(o), c)
+    FI
+ENDDEF
+
+FUNCDEF isValid_List_CustomerType ( x :: List_CustomerType; min :: Int; max :: Conditional_Int ) :: Bool ::=
+       isValidElementsList_CustomerType(x)
+    /\ (min &lt;= lengthList_CustomerType(x))
+    /\ (IF isCPresent_Int(max) THEN lengthList_CustomerType(x) &lt;= value(max) ELSE True FI)
+ENDDEF
+
+FUNCDEF isValidElementsList_CustomerType ( x :: List_CustomerType ) :: Bool ::=
+    IF isCstr_CustomerType(x)
+        THEN isValid_CustomerType(head(x)) /\ isValidElementsList_CustomerType(tail(x))
+        ELSE True
+    FI
+ENDDEF
+
+FUNCDEF lengthList_CustomerType ( x :: List_CustomerType ) :: Int ::=
+    IF isCNil_CustomerType(x) THEN 0 ELSE 1 + lengthList_CustomerType(tail(x)) FI
+ENDDEF
+
+FUNCDEF isValid_CustomerType ( t :: CustomerType ) :: Bool ::=
+       isValid_string(companyName(t))
+    /\ isValid_string(contactName(t))
+    /\ isValid_string(contactTitle(t))
+    /\ isValid_string(phone(t))
+    /\ isValid_Conditional_string(fax(t))
+    /\ isValid_AddressType(fullAddress(t))
+    /\ isValid_unsignedLong(customerID(t))
+ENDDEF
+
+FUNCDEF isValid_AddressType ( t :: AddressType ) :: Bool ::=
+       isValid_string(address(t))
+    /\ isValid_string(city(t))
+    /\ isValid_string(region(t))
+    /\ isValid_string(postalCode(t))
+    /\ isValid_string(country(t))
+ENDDEF
+
+FUNCDEF isValid_List_OrderType ( x :: List_OrderType; min :: Int; max :: Conditional_Int ) :: Bool ::=
+       isValidElementsList_OrderType(x)
+    /\ (min &lt;= lengthList_OrderType(x))
+    /\ (IF isCPresent_Int(max) THEN lengthList_OrderType(x) &lt;= value(max) ELSE True FI)
+ENDDEF
+
+FUNCDEF isValidElementsList_OrderType ( x :: List_OrderType ) :: Bool ::=
+    IF isCstr_OrderType(x) THEN isValid_OrderType(head(x)) /\ isValidElementsList_OrderType(tail(x)) ELSE True FI
+ENDDEF
+
+FUNCDEF lengthList_OrderType ( x :: List_OrderType ) :: Int ::=
+    IF isCNil_OrderType(x) THEN 0 ELSE 1 + lengthList_OrderType(tail(x)) FI
+ENDDEF
+
+FUNCDEF isValid_OrderType ( t :: OrderType ) :: Bool ::=
+       isValid_unsignedLong(customerID(t))
+    /\ isValid_unsignedInt(employeeID(t))
+    /\ isValid_dateTime(orderDate(t))
+    /\ isValid_dateTime(requiredDate(t))
+    /\ isValid_ShipInfoType(shipInfo(t))
+    /\ (requiredDate(t) &gt; orderDate(t))
+    /\ ( LET sd = shippedDate(shipInfo(t)) IN IF isCPresent_dateTime(sd) THEN value(sd) &gt;= orderDate(t) ELSE True FI NI )
+ENDDEF
+
+FUNCDEF isValid_ShipInfoType ( t :: ShipInfoType ) :: Bool ::=
+       isValid_integer(shipVia(t))
+    /\ isValid_decimal(freight(t))
+    /\ isValid_string(shipName(t))
+    /\ isValid_string(shipAddress(t))
+    /\ isValid_string(shipCity(t))
+    /\ isValid_string(shipRegion(t))
+    /\ isValid_string(shipPostalCode(t))
+    /\ isValid_string(shipCountry(t))
+    /\ isValid_Conditional_dateTime(shippedDate(t))
+ENDDEF
+</code></pre>
+<p>Since TorXakis assumes synchronous communication, yet the system under test communicates<br>
+asynchronously, we have to include the asynchronous communication channel as well.</p>
+<pre><code>TYPEDEF  StringList  ::= Nil
+                       | Cons  { hd ::  String
+                               ; tl ::  StringList
+                               }
+ENDDEF
+
+FUNCDEF  add ( x :: String; l :: StringList ) :: StringList
+         ::= IF    isNil(l)
+             THEN  Cons(x,Nil)
+             ELSE  Cons(hd(l),add(x,tl(l)))
+             FI
+ENDDEF
+
+PROCDEF bufferedOutput [ IReport, OReport :: String ] (queue :: StringList) ::=
+        IReport ? r &gt;-&gt; bufferedOutput [ IReport, OReport ] (add (r , queue))
+    ##
+        [[ isCons (queue) ]] =&gt;&gt; OReport ! hd(queue) &gt;-&gt; bufferedOutput [ IReport, OReport ] (tl(queue))
+ENDDEF
+</code></pre>
+<p>Using these <a href="https://github.com/TorXakis/TorXakis/wiki/TypeDefs">Type Definitions</a> and <a href="https://github.com/TorXakis/TorXakis/wiki/FuncDefs">Function Definitions</a> we define the following <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">Process Definition</a>,<br>
+<a href="https://github.com/TorXakis/TorXakis/wiki/ChanDefs">Channel Definition</a>, <a href="https://github.com/TorXakis/TorXakis/wiki/ModelDefs">Model Definition</a>, and <a href="https://github.com/TorXakis/TorXakis/wiki/CnectDefs">Connection Definition</a>:</p>
+<pre><code>PROCDEF handle [ Customer :: CustomerType; Order :: OrderType; Report :: String ] (cs :: List_CustomerType; os :: List_OrderType; changed :: Bool) EXIT ::=
+        [[ changed ]] =&gt;&gt;   (   Report ! toXml ( C_RootType ( cs, os ) )
+                            &gt;-&gt; handle [Customer , Order , Report ] ( cs , os , False)
+                            )
+    ##
+        (   Customer ? c [[ isValid_CustomerType(c) /\ not ( containsCustomerID ( customerID ( c ) , cs ) ) ]]
+        &gt;-&gt; handle [Customer, Order, Report] ( Cstr_CustomerType ( c, cs ), os , True )
+        )
+    ##
+        (   [[ isCstr_CustomerType(cs) ]] =&gt;&gt; Order ? o [[ isValid_OrderType(o) /\ containsCustomerID ( customerID(o), cs ) ]]
+        &gt;-&gt; handle [Customer, Order, Report] ( cs, Cstr_OrderType ( o, os ) , True )
+        )
+ENDDEF
+
+CHANDEF Chans ::=   Customer  :: CustomerType
+                  ; Order     :: OrderType
+                  ; Report    :: String
+ENDDEF
+
+MODELDEF Model ::=
+    CHAN IN    Customer, Order
+    CHAN OUT   Report
+    BEHAVIOUR
+        HIDE [ HReport :: String ] IN
+                handle [ Customer, Order, HReport ] ( CNil_CustomerType, CNil_OrderType, True )
+            |[ HReport ]|
+                bufferedOutput [ HReport, Report ] (Nil)
+        NI
+ENDDEF
+
+CNECTDEF  Sut
+    ::=
+        CLIENTSOCK
+
+        CHAN  OUT  Customer                  HOST "localhost"  PORT 7890
+        ENCODE     Customer  ? c         -&gt;  ! toXml(c)
+
+        CHAN  OUT  Order                     HOST "localhost"  PORT 7891
+        ENCODE     Order  ? o            -&gt;  ! toXml(o)
+
+        CHAN  IN   Report                    HOST "localhost"  PORT 7892
+        DECODE     Report ! s           &lt;-   ? s
+ENDDEF
+</code></pre>
+<p>where the toXml functions are defined as follows</p>
+<pre><code>FUNCDEF toXml (r :: RootType) :: String ::=
+    "&lt;Root&gt;" ++
+    "&lt;Customers&gt;" ++
+    toXml (customers(r)) ++
+    "&lt;/Customers&gt;" ++
+    "&lt;Orders&gt;" ++
+    toXml (orders(r)) ++
+    "&lt;/Orders&gt;" ++
+    "&lt;/Root&gt;"
+ENDDEF
+
+FUNCDEF toXml (lc :: List_CustomerType) :: String ::=
+    IF isCNil_CustomerType(lc)
+        THEN ""
+        ELSE toXml(head(lc)) ++ toXml(tail(lc))
+    FI
+ENDDEF
+
+FUNCDEF toXml (lo :: List_OrderType) :: String ::=
+    IF isCNil_OrderType(lo)
+        THEN ""
+        ELSE toXml(head(lo)) ++ toXml(tail(lo))
+    FI
+ENDDEF
+
+FUNCDEF toXml (c :: CustomerType) :: String ::=
+    "&lt;Customer CustomerID=" ++ toString(customerID(c)) ++ "&gt;" ++
+    "&lt;CompanyName&gt;"++ companyName(c) ++ "&lt;/CompanyName&gt;"++
+    "&lt;ContactName&gt;" ++ contactName(c) ++ "&lt;/ContactName&gt;" ++
+    "&lt;ContactTitle&gt;" ++ contactTitle(c) ++ "&lt;/ContactTitle&gt;" ++
+    "&lt;Phone&gt;" ++ phone(c) ++ "&lt;/Phone&gt;" ++
+    ( IF isCPresent_string(fax(c)) THEN
+        "&lt;Fax&gt;" ++ value(fax(c)) ++ "&lt;/Fax&gt;"
+      ELSE
+        ""
+      FI
+    ) ++
+    toXml(fullAddress(c)) ++
+    "&lt;/Customer&gt;"
+ENDDEF
+
+FUNCDEF toXml (o :: OrderType) :: String ::=
+    "&lt;Order&gt;" ++
+        "&lt;CustomerID&gt;" ++ toString(customerID(o)) ++ "&lt;/CustomerID&gt;" ++
+        "&lt;EmployeeID&gt;" ++ toString(employeeID(o)) ++ "&lt;/EmployeeID&gt;" ++
+        "&lt;OrderDate&gt;" ++ toString(orderDate(o)) ++ "&lt;/OrderDate&gt;" ++
+        "&lt;RequiredDate&gt;" ++ toString(requiredDate(o)) ++ "&lt;/RequiredDate&gt;" ++
+        toXml(shipInfo(o)) ++
+    "&lt;/Order&gt;"
+ENDDEF
+
+FUNCDEF toXml (a :: AddressType) :: String ::=
+    "&lt;FullAddress&gt;" ++
+        "&lt;Address&gt;" ++ address(a) ++ "&lt;/Address&gt;" ++
+        "&lt;City&gt;" ++ city(a) ++ "&lt;/City&gt;" ++
+        "&lt;Region&gt;" ++ region(a) ++ "&lt;/Region&gt;" ++
+        "&lt;PostalCode&gt;" ++ postalCode(a) ++ "&lt;/PostalCode&gt;" ++
+        "&lt;Country&gt;" ++ country(a) ++ "&lt;/Country&gt;" ++
+    "&lt;/FullAddress&gt;" 
+ENDDEF
+
+FUNCDEF toXml (s :: ShipInfoType) :: String ::=
+    "&lt;ShipInfo"++
+        ( IF isCPresent_dateTime(shippedDate(s)) THEN
+            " ShippedDate=" ++ toString(value(shippedDate(s))) ++ "&gt;"
+          ELSE
+            "&gt;"
+          FI
+        ) ++
+        "&lt;ShipVia&gt;" ++ toString(shipVia(s)) ++ "&lt;/ShipVia&gt;" ++
+        "&lt;Freight&gt;" ++ toString(freight(s)) ++ "&lt;/Freight&gt;" ++
+        "&lt;ShipName&gt;" ++ shipName(s) ++ "&lt;/ShipName&gt;" ++
+        "&lt;ShipAddress&gt;" ++ shipAddress(s) ++ "&lt;/ShipAddress&gt;" ++
+        "&lt;ShipCity&gt;" ++ shipCity(s) ++ "&lt;/ShipCity&gt;" ++
+        "&lt;ShipRegion&gt;" ++ shipRegion(s) ++ "&lt;/ShipRegion&gt;" ++
+        "&lt;ShipPostalCode&gt;" ++ shipPostalCode(s) ++ "&lt;/ShipPostalCode&gt;" ++
+        "&lt;ShipCountry&gt;" ++ shipCountry(s) ++ "&lt;/ShipCountry&gt;" ++
+    "&lt;/ShipInfo&gt;"
+ENDDEF
+</code></pre>
+<h2 id="model-based-testing-1">Model Based Testing</h2>
+<ol>
+<li>Start the SUT: run the <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">Java program</a> in a command window.</li>
+</ol>
+<p><code>$&gt; java CustomersOrders</code></p>
+<ol start="2">
+<li>Start TorXakis: run the <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the CustomersOrders model described above in another command window.</li>
+</ol>
+<p><code>$&gt; torxakis CustomersOrders.txs</code></p>
+<ol start="3">
+<li>Set the Model and SUT for testing: In TorXakis type the following commands:</li>
+</ol>
+<p><code>tester Model Sut</code></p>
+<ol start="4">
+<li>Test the SUT: In TorXakis type the following command:</li>
+</ol>
+<p><code>test 10</code></p>
+<p>TorXakis will perform an Order, Report or Customer action with various parameters at each step, as long as the SUT responds as expected or the number of test steps are reached, then finally conclude:</p>
+<pre><code>TXS &gt;&gt;  .....1: OUT: Act { { ( Report, [ Report(Nil_Customer,Nil_Order) ] ) } }
+TXS &gt;&gt;  .....2: IN: Act { { ( Order, [ Order(49,6,-99,-21,ShipInfo(-52,-41,"A","P","PPAAA","U","K","",Absent_dateTime)) ] ) } }
+TXS &gt;&gt;  .....3: OUT: Act { { ( Report, [ Report(Nil_Customer,Cstr_Order(Order(49,6,-99,-21,ShipInfo(-52,-41,"A","P","PPAAA","U","K","",Absent_dateTime)),Nil_Order)) ] ) } }
+TXS &gt;&gt;  .....4: IN: Act { { ( Order, [ Order(49,15,-75,35,ShipInfo(46,-55,"A","","AT","PBY","","B",Present_dateTime(-4))) ] ) } }
+TXS &gt;&gt;  .....5: OUT: Act { { ( Report, [ Report(Nil_Customer,Cstr_Order(Order(49,15,-75,35,ShipInfo(46,-55,"A","","AT","PBY","","B",Present_dateTime(-4))),Cstr_Order(Order(49,6,-99,-21,ShipInfo(-52,-41,"A","P","PPAAA","U","K","",Absent_dateTime)),Nil_Order))) ] ) } }
+TXS &gt;&gt;  .....6: IN: Act { { ( Order, [ Order(49,16,-100,-97,ShipInfo(-98,-63,"","","Q","P","D","X",Absent_dateTime)) ] ) } }
+TXS &gt;&gt;  .....7: OUT: Act { { ( Report, [ Report(Nil_Customer,Cstr_Order(Order(49,16,-100,-97,ShipInfo(-98,-63,"","","Q","P","D","X",Absent_dateTime)),Cstr_Order(Order(49,15,-75,35,ShipInfo(46,-55,"A","","AT","PBY","","B",Present_dateTime(-4))),Cstr_Order(Order(49,6,-99,-21,ShipInfo(-52,-41,"A","P","PPAAA","U","K","",Absent_dateTime)),Nil_Order)))) ] ) } }
+TXS &gt;&gt;  .....8: IN: Act { { ( Order, [ Order(49,40,-65,77,ShipInfo(-28,-37,"X","D","B","B","","",Present_dateTime(-58))) ] ) } }
+TXS &gt;&gt;  .....9: OUT: Act { { ( Report, [ Report(Nil_Customer,Cstr_Order(Order(49,40,-65,77,ShipInfo(-28,-37,"X","D","B","B","","",Present_dateTime(-58))),Cstr_Order(Order(49,16,-100,-97,ShipInfo(-98,-63,"","","Q","P","D","X",Absent_dateTime)),Cstr_Order(Order(49,15,-75,35,ShipInfo(46,-55,"A","","AT","PBY","","B",Present_dateTime(-4))),Cstr_Order(Order(49,6,-99,-21,ShipInfo(-52,-41,"A","P","PPAAA","U","K","",Absent_dateTime)),Nil_Order))))) ] ) } }
+TXS &gt;&gt;  ....10: IN: Act { { ( Customer, [ Customer("P","H","","C",Absent_string,Address("X","P","A","BAD",""),90) ] ) } }
+TXS &gt;&gt;  PASS
+</code></pre>
+<p><a id="lucky"></a></p>
+<h1 id="modelling-example-lucky-people">Modelling Example: Lucky People</h1>
+<p>Your assignment is to test the Lucky People program with TorXakis.</p>
+<h2 id="requirements">Requirements</h2>
+<p>The Lucky People program gets as input a sequence of persons on socket 7777.<br>
+A person has a sex, first name, last name, day and month of birth.<br>
+For each person, the Lucky People program produces one output, a string on socket 7777.<br>
+The string is either True or False, and reflects whether the person is considered lucky.<br>
+A person is lucky based on</p>
+<ul>
+<li><strong>Name:</strong> The first character of the first name is equal to the first character of the last name, or</li>
+<li><strong>Birth date:</strong> The day of birth is equal to the month of birth, or</li>
+<li><strong>Gender:</strong> The person is a Female after five Males or a Male after five Females.</li>
+</ul>
+<p>The input sequence is specified as follows:</p>
+<table>
+<thead>
+<tr>
+<th>Specification</th>
+<th>Structure</th>
+<th>Constraints</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>persons</td>
+<td>(person ‘\n’)*</td>
+<td></td>
+</tr>
+<tr>
+<td>person</td>
+<td>sex separator firstName separator lastName separator dayOfBirth separator monthOfBirth</td>
+<td></td>
+</tr>
+<tr>
+<td>separator</td>
+<td>‘@’</td>
+<td></td>
+</tr>
+<tr>
+<td>sex</td>
+<td>‘Male’|‘Female’</td>
+<td></td>
+</tr>
+<tr>
+<td>firstName</td>
+<td>name</td>
+<td></td>
+</tr>
+<tr>
+<td>lastName</td>
+<td>name</td>
+<td></td>
+</tr>
+<tr>
+<td>name</td>
+<td>[A-Z][a-z]*</td>
+<td></td>
+</tr>
+<tr>
+<td>dayOfBirth</td>
+<td>Int</td>
+<td>1 &lt;= dayOfBirth &lt;= 31</td>
+</tr>
+<tr>
+<td>monthOfBirth</td>
+<td>Int</td>
+<td>1 &lt;= monthOfBirth &lt;= 12</td>
+</tr>
+</tbody>
+</table>
+<h2 id="examples">Examples</h2>
+<h3 id="lucky-based-on-names">Lucky based on names</h3>
+<ul>
+<li>Male@Mickey@Mouse@13@1</li>
+<li>Male@Donald@Duck@13@3</li>
+<li>Male@Luuk@Laar@24@12</li>
+</ul>
+<h3 id="lucky-based-on-birthday">Lucky based on birthday</h3>
+<ul>
+<li>Female@Shakira@Ripoll@2@2</li>
+<li>Male@Michael@Buble@9@9</li>
+<li>Female@Imke@Laar@7@7</li>
+</ul>
+<h3 id="lucky-based-on-sequence">Lucky based on sequence</h3>
+<p>In the following sequences of persons, the persons in italics are considered lucky due to their position in the sequence</p>
+<ul>
+<li>
+<p>Male@Huey@Duck@17@10<br>
+Male@Dewey@Duck@17@10<br>
+Male@Louie@Duck@17@10<br>
+Male@Mickey@Mouse@13@1<br>
+Male@Donald@Duck@13@3<br>
+<em>Female@April@Duck@15@5</em></p>
+</li>
+<li>
+<p>Female@Beatrix@Oranje@31@1<br>
+Female@Maxima@Zorreguieta@17@5<br>
+Female@Amalia@Oranje@7@12<br>
+Female@Alexia@Oranje@26@6<br>
+Female@Ariane@Oranje@10@4<br>
+<em>Male@Willem@Oranje@27@4</em></p>
+</li>
+</ul>
+<h2 id="deliverables">Deliverables</h2>
+<p>Provide a TorXakis model: a file named ‘LuckyPeople.txs’ containing a <a href="https://github.com/TorXakis/TorXakis/wiki/ModelDefs">model definition</a> and <a href="https://github.com/TorXakis/TorXakis/wiki/CnectDefs">connection definition</a>.<br>
+Provide a test report: a file containing the verdict whether ‘LuckyPeople.java’ satisfies the requirements and the actual trace(s) used to test the program.</p>
+<h1 id="solution">Solution</h1>
+<p>We want to test our <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">java program</a> <a href="https://github.com/TorXakis/TorXakis/blob/develop/examps/LuckyPeople/sut/LuckyPeople.java">LuckyPeople.java</a>.<br>
+This program gets as input a sequence of persons and determines if those people are lucky. The detailed behaviour of this program can be found at the <a href="https://github.com/TorXakis/TorXakis/wiki/Modelling-Example-Lucky-People">assignment page</a>.<br>
+All the files used in this example can be found at <a href="https://github.com/TorXakis/TorXakis/tree/develop/examps/LuckyPeople">the example folder</a>.</p>
+<h2 id="types">Types</h2>
+<p>We start with defining the types that are needed to model This program’s (our System Under Test - SUT) behaviour.<br>
+The input of our SUT are persons with first name, last name, sex, day of birth and month of birth. Let’s <a href="https://github.com/TorXakis/TorXakis/wiki/TypeDefs">define the types</a> needed:</p>
+<pre><code>TYPEDEF Sex ::= Male | Female ENDDEF
+
+TYPEDEF Person ::=
+    Person { sex :: Sex 
+           ; firstName, lastName :: String 
+           ; dayOfBirth, monthOfBirth :: Int
+           }
+ENDDEF
+</code></pre>
+<h2 id="channels-3">Channels</h2>
+<p>Our SUT receives a sequence of persons and determines if those people are lucky. Let’s <a href="https://github.com/TorXakis/TorXakis/wiki/ChanDefs">define the channels</a> needed for modelling this behaviour:</p>
+<pre><code>CHANDEF Channels ::=  In   :: Person
+                    ; Out  :: Bool
+ENDDEF
+</code></pre>
+<h2 id="procedure">Procedure</h2>
+<p>In our <a href="https://github.com/TorXakis/TorXakis/wiki/ModelDefs">model definition</a>, we need a way to define the behaviour of determining whether a Person is lucky or not.<br>
+Let’s implement a <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">procedure definition</a> for this:</p>
+<p><code>PROCDEF luckyPeople [ In :: Person; Out :: Bool ] ( last :: Sex; n :: Int ) ::=</code></p>
+<p>“<em>In</em>” and “<em>Out</em>” are our channels, while “<em>last</em>” and “<em>n</em>” are the parameters of this procedure. We added the parameters because we want to keep track of how many people of the same sex have been before current person, since it is one of the ways of determining whether a person is lucky.</p>
+<p>We want to test our SUT with inputs that make sense, so we should tell TorXakis what makes a Person input valid. Let’s add a function as a constraint for the input:</p>
+<p><code>In ? p [[ isValid_Person(p) ]]</code></p>
+<p>We’re going to implement “<em>isValid_Person()</em>” function later. For now let’s focus on the process.</p>
+<p>Next, we want to communicate to the output whether this person is lucky or not. Let’s use another function for it:</p>
+<p><code>&gt;-&gt; Out ! isLuckyPerson (p, last, n)</code></p>
+<p>“<strong>&gt;-&gt;</strong>” is the <a href="https://github.com/TorXakis/TorXakis/wiki/Sequence_Operator">Sequence Operator</a>. It means that after the process on the left has communicated, the described process behaviour on the right is exposed.</p>
+<p>After communicating the result to the output channel, it’s time to go back and wait for next input. There’s one catch, though: As we said above, we should keep track of how many people with the current sex have been processed so far.</p>
+<pre><code>&gt;-&gt;(
+            ( [[ sex(p) == last ]] =&gt;&gt; luckyPeople[In,Out] ( sex(p), n+1 ) )
+        ##
+            ( [[ sex(p) &lt;&gt; last ]] =&gt;&gt; luckyPeople[In,Out] ( sex(p), 1 ) )
+    )
+</code></pre>
+<p>“<strong>##</strong>” is the <a href="https://github.com/TorXakis/TorXakis/wiki/Choice_Operator">Choice Operator</a>. It means that either one of those processes are executed, but never both.</p>
+<p>“<strong>=&gt;&gt;</strong>” is the <a href="https://github.com/TorXakis/TorXakis/wiki/Guard_Operator">Guard Operator</a>. The process behaviour on the right is executed only if the expression on the left of it is <em>true</em>.</p>
+<p>So the <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">process definition</a> of Lucky People looks like this:</p>
+<pre><code>PROCDEF luckyPeople [ In :: Person; Out :: Bool ] ( last :: Sex; n :: Int ) ::=
+        In ? p [[ isValid_Person(p) ]] 
+    &gt;-&gt; Out ! isLuckyPerson (p, last, n) 
+    &gt;-&gt;(
+                ( [[ sex(p) == last ]] =&gt;&gt; luckyPeople[In,Out] ( sex(p), n+1 ) )
+            ##
+                ( [[ sex(p) &lt;&gt; last ]] =&gt;&gt; luckyPeople[In,Out] ( sex(p), 1 ) )
+        )
+ENDDEF
+</code></pre>
+<p>Now we can use this <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">procedure definition</a> in our <a href="https://github.com/TorXakis/TorXakis/wiki/ModelDefs">Model</a>.</p>
+<h2 id="model-3">Model</h2>
+<p>The model should specify that the system uses two channels, one incoming for the Person and one outgoing for the result.<br>
+It should also specify that “<em>luckyPeople</em>” process is executed with the input and this process’s output is communicated to the out channel as this model’s behaviour.</p>
+<pre><code>MODELDEF Model ::=
+    CHAN IN    In
+    CHAN OUT   Out
+
+    BEHAVIOUR
+        luckyPeople[In, Out](Male,0)   -- first sex choice is arbitrary
+ENDDEF
+</code></pre>
+<h2 id="functions-1">Functions</h2>
+<p>We’re not done yet. We need to implement the <a href="https://github.com/TorXakis/TorXakis/wiki/FuncDefs">function definitions</a> that our “<em>luckyPeople</em>” process uses.</p>
+<h3 id="isvalid_person">isValid_Person</h3>
+<p>We want to validate the input in order to make sure that it represents data of a person that can actually exist.</p>
+<pre><code>FUNCDEF isValid_Person (p :: Person) :: Bool ::=
+       strinre (firstName(p), REGEX ('[A-Z][a-z]*'))
+    /\ strinre (lastName(p), REGEX ('[A-Z][a-z]*'))
+    /\ (1 &lt;= dayOfBirth(p)) /\ (dayOfBirth(p) &lt;= 31)
+    /\ (1 &lt;= monthOfBirth(p)) /\ (monthOfBirth(p) &lt;= 12)
+ENDDEF
+</code></pre>
+<p>“<em>strinre</em>” function checks whether the given string matches the given Regular Expression. First two lines ensure that only the inputs with Capital case first name and surname are valid.</p>
+<h3 id="isluckyperson">isLuckyPerson</h3>
+<p>To make the “<em>luckyPerson</em>” process cleaner, we decided to extract the logic of determining the person’s luckiness into a separate function. As we have seen in the <a href="https://github.com/TorXakis/TorXakis/wiki/Modelling-Example-Lucky-People">assignment page</a>, a person can be lucky based on 3 criteria: gender, name or birthday. So our <a href="https://github.com/TorXakis/TorXakis/wiki/FuncDefs">function definition</a> should be something like this:</p>
+<pre><code>FUNCDEF isLuckyPerson (p :: Person; last :: Sex; n :: Int) :: Bool ::=
+       isLuckyByGender(p, last, n)
+    \/ isLuckyByName(p)
+    \/ isLuckyByBirthday(p)
+ENDDEF
+</code></pre>
+<p>Now let’s define each of these criteria as separate <a href="https://github.com/TorXakis/TorXakis/wiki/FuncDefs">function definitions</a>.</p>
+<h3 id="isluckybygender">isLuckyByGender</h3>
+<p>A person is lucky by gender if previous 5 people were all from the opposite sex.</p>
+<pre><code>FUNCDEF isLuckyByGender (p :: Person; last :: Sex; n :: Int) :: Bool ::=
+    ( sex(p) &lt;&gt; last ) /\ ( n &gt;= 5 )
+ENDDEF
+</code></pre>
+<h3 id="isluckybyname">isLuckyByName</h3>
+<p>A person is lucky by name if both it’s name and surname start with the same letter.</p>
+<pre><code>FUNCDEF isLuckyByName (p :: Person) :: Bool ::=
+    at(firstName(p), 0 ) == at(lastName(p), 0 )
+ENDDEF
+</code></pre>
+<h3 id="isluckybybirthday">isLuckyByBirthday</h3>
+<p>A person is lucky by birthday if both day and month of it’s birthday are the same.</p>
+<pre><code>FUNCDEF isLuckyByBirthday (p :: Person) :: Bool ::=
+    dayOfBirth(p) == monthOfBirth(p)
+ENDDEF
+</code></pre>
+<h2 id="sut-connection-2">SUT Connection</h2>
+<p>Our SUT communicates with the outside world by sending and receiving lines i.e. strings terminated by a line feed, over a socket at port 7777.<br>
+The SUT also expects one person per input line, fields separated by “@” sign. So we should make sure that the Person type in our TorXakis model is properly serialized before being communicated to the SUT. The return value from the SUT should also be deserialized into proper data structure (Bool).<br>
+Assuming that TorXakis and the SUT run on the same machine (localhost) the <a href="https://github.com/TorXakis/TorXakis/wiki/CnectDefs">SUT connection</a> can be defined in TorXakis as follows:</p>
+<pre><code>CONSTDEF separator :: String ::= "@" ENDDEF
+
+CNECTDEF  Sut ::=
+    CLIENTSOCK
+
+    CHAN  OUT  In                   HOST "localhost"  PORT 7777
+    ENCODE     In  ? p              -&gt;  ! toString(sex(p))        ++ separator ++
+                                          firstName(p)            ++ separator ++
+                                          lastName(p)             ++ separator ++
+                                          toString(dayOfBirth(p)) ++ separator ++
+                                          toString(monthOfBirth(p))
+
+    CHAN  IN   Out                  HOST "localhost"  PORT 7777
+    DECODE     Out  ! fromString(s) &lt;-  ? s
+ENDDEF
+
+</code></pre>
+<h2 id="model-based-testing-2">Model Based Testing</h2>
+<ol>
+<li>Start the SUT: run the <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">Java program</a> in a command window.</li>
+</ol>
+<p><code>$&gt; java LuckyPeople</code></p>
+<ol start="2">
+<li>Start TorXakis: run the <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the LuckyPeople model described above in another command window.</li>
+</ol>
+<p><code>$&gt; torxakis LuckyPeople.txs</code></p>
+<ol start="3">
+<li>Set the Model and SUT for testing: In TorXakis type the following commands:</li>
+</ol>
+<p><code>tester Model Sut</code></p>
+<ol start="4">
+<li>Test the SUT: In TorXakis type the following command:</li>
+</ol>
+<p><code>test 50</code></p>
+<p>TorXakis will create <em>valid</em> random Person data, pass it to SUT and receive the output at each step, as long as the SUT responds as expected or the number of test steps are reached, then finally conclude:</p>
+<pre><code>TXS &gt;&gt;  .....1: IN: Act { { ( In, [ Person(Male,"W","Phz",22,9) ] ) } }
+TXS &gt;&gt;  .....2: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  .....3: IN: Act { { ( In, [ Person(Male,"Pa","Hrd",2,2) ] ) } }
+TXS &gt;&gt;  .....4: OUT: Act { { ( Out, [ True ] ) } }
+...
+TXS &gt;&gt;  ....47: IN: Act { { ( In, [ Person(Female,"Pk","Pq",3,11) ] ) } }
+TXS &gt;&gt;  ....48: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ....49: IN: Act { { ( In, [ Person(Female,"Pp","La",31,1) ] ) } }
+TXS &gt;&gt;  ....50: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  PASS
+</code></pre>
+<h2 id="xml-based-communication-1">XML-Based communication</h2>
+<p>TorXakis is capable of XML-based communication with SUT’s. We don’t have an SUT which does that but TorXakis can help us there, too: TorXakis can also act as a simulator which behaves based on a model.<br>
+Let’s <a href="https://github.com/TorXakis/TorXakis/wiki/CnectDefs">define another connection</a> and a simulator, both of which use XML-based communication.</p>
+<pre><code>CNECTDEF  Xut ::=
+    CLIENTSOCK
+
+    CHAN  OUT  In                   HOST "localhost"  PORT 7777
+    ENCODE     In  ? p              -&gt;  ! toXml(p)
+    
+    CHAN  IN   Out                  HOST "localhost"  PORT 7777
+    DECODE     Out  ! fromXml(s)    &lt;-  ? s
+ENDDEF
+
+CNECTDEF  Xim ::=
+    SERVERSOCK
+
+    CHAN IN   In                    HOST "localhost"  PORT 7777
+    DECODE    In ! fromXml(s)       &lt;-  ? s
+
+    CHAN OUT  Out                   HOST "localhost"  PORT 7777
+    ENCODE    Out ? b               -&gt;  ! toXml(b)
+ENDDEF
+</code></pre>
+<p>Let’s test our simulator.</p>
+<ol>
+<li>Start TorXakis as simulator: run the <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the LuckyPeople model described above in a command window.</li>
+</ol>
+<p><code>$&gt; torxakis LuckyPeople.txs</code></p>
+<ol start="2">
+<li>Set the Model and Simulator for testing: In TorXakis type the following commands:</li>
+</ol>
+<p><code>simulator Model Xim</code></p>
+<p>TorXakis will hang, waiting for a tester to connect.</p>
+<ol start="3">
+<li>Start another TorXakis instance as the Tester: run the <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the LuckyPeople model described above in another command window.</li>
+</ol>
+<p><code>$&gt; torxakis LuckyPeople.txs</code></p>
+<ol start="4">
+<li>Set the Model and Sut for testing: In TorXakis type the following commands:</li>
+</ol>
+<p><code>tester Model Xut</code></p>
+<p>As soon as you enter this command, you’ll see that Simulator also responds:</p>
+<p><code>TXS &gt;&gt; Simulator started</code></p>
+<ol start="5">
+<li>Simulator works a bit slower than the Java implementation. To prevent unexpected delays to cause false negatives, increase delta times of tester.<br>
+In the command window of the tester, input following commands:</li>
+</ol>
+<pre><code>param param_Sim_deltaTime 4000
+param param_Sut_deltaTime 4000
+</code></pre>
+<ol start="6">
+<li>Start Simulator with a high number of steps, in order to not run out of steps before testing is finished:</li>
+</ol>
+<p><code>sim 30</code></p>
+<ol start="7">
+<li>Test the Simulator: In TorXakis type the following command:</li>
+</ol>
+<p><code>test 10</code></p>
+<p>Now you’ll see the tester TorXakis instance happily testing the simulator:</p>
+<pre><code>TXS &gt;&gt;  .....1: IN: Act { { ( In, [ Person(Male,"K","D",2,1) ] ) } }
+TXS &gt;&gt;  .....2: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  .....3: IN: Act { { ( In, [ Person(Male,"B","L",8,12) ] ) } }
+TXS &gt;&gt;  .....4: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  .....5: IN: Act { { ( In, [ Person(Male,"Phdppab","S",19,2) ] ) } }
+TXS &gt;&gt;  .....6: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  .....7: IN: Act { { ( In, [ Person(Male,"Addp","Pz",17,8) ] ) } }
+TXS &gt;&gt;  .....8: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  .....9: IN: Act { { ( In, [ Person(Female,"Hfhnad","Ln",4,8) ] ) } }
+TXS &gt;&gt;  ....10: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  PASS
+</code></pre>
+<p>And simulator TorXakis instance acting as the SUT:</p>
+<pre><code>TXS &gt;&gt;  .....1: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....2: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....3: IN: Act { { ( In, [ Person(Male,"K","D",2,1) ] ) } }
+TXS &gt;&gt;  .....4: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  .....5: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....6: IN: Act { { ( In, [ Person(Male,"B","L",8,12) ] ) } }
+TXS &gt;&gt;  .....7: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  .....8: IN: Act { { ( In, [ Person(Male,"Phdppab","S",19,2) ] ) } }
+TXS &gt;&gt;  .....9: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....10: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....11: IN: Act { { ( In, [ Person(Male,"Addp","Pz",17,8) ] ) } }
+TXS &gt;&gt;  ....12: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....13: IN: Act { { ( In, [ Person(Female,"Hfhnad","Ln",4,8) ] ) } }
+TXS &gt;&gt;  ....14: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ....15: OUT: No Output (Quiescence)
+...
+TXS &gt;&gt;  ....30: OUT: No Output (Quiescence)
+TXS &gt;&gt;  PASS
+</code></pre>
+<h3 id="testing-with-predetermined-input">Testing with predetermined input</h3>
+<p>We can also tell TorXakis to use predetermined input data for testing. For this, we can make use of <a href="https://github.com/TorXakis/TorXakis/wiki/TestPurpose">Test Purpose</a>s. We’ll define a process that communicates Person data and resulting boolean at each step, then we’ll add as many steps as we want for our predetermined input, and then we’ll use this process in our Test Purpose.</p>
+<p>Let’s create a <em>PurposeExamples.txs</em> file and define that process and write some test data with expected results:</p>
+<pre><code>PROCDEF examples [ In :: Person; Out :: Bool ] () HIT ::=
+        In ! Person( Male, "Mickey", "Mouse", 13, 1 )
+    &gt;-&gt; Out ! True
+    &gt;-&gt; In ! Person( Male, "Donald", "Duck", 13, 3 )
+    &gt;-&gt; Out ! True
+    &gt;-&gt; In ! Person( Male, "Luuk", "Laar", 24, 12 )
+    &gt;-&gt; Out ! True
+    &gt;-&gt; In ! Person( Female, "Shakira", "Ripoll", 2, 2 )
+    &gt;-&gt; Out ! True
+    &gt;-&gt; In ! Person( Male, "Michael", "Buble", 9, 9 )
+    &gt;-&gt; Out ! True
+    &gt;-&gt; In ! Person( Female, "Imke", "Laar", 7, 7 )
+    &gt;-&gt; Out ! True
+    &gt;-&gt; In ! Person( Male, "Huey", "Duck", 17, 10 )
+    &gt;-&gt; Out ! False
+    &gt;-&gt; In ! Person( Male, "Dewey", "Duck", 17, 10 )
+    &gt;-&gt; Out ! True
+    &gt;-&gt; In ! Person( Male, "Louie", "Duck", 17, 10 )
+    &gt;-&gt; Out ! False
+    &gt;-&gt; In ! Person( Male, "Mickey", "Mouse", 13, 1 )
+    &gt;-&gt; Out ! True
+    &gt;-&gt; In ! Person( Male, "Donald", "Duck", 13, 3 )
+    &gt;-&gt; Out ! True
+    &gt;-&gt; In ! Person( Female, "April", "Duck", 15, 5 )
+    &gt;-&gt; Out ! True
+    &gt;-&gt; In ! Person( Female, "Beatrix", "Oranje", 31, 1 )
+    &gt;-&gt; Out ! False
+    &gt;-&gt; In ! Person( Female, "Maxima", "Zorreguieta", 17, 5 )
+    &gt;-&gt; Out ! False
+    &gt;-&gt; In ! Person( Female, "Amalia", "Oranje", 7, 12 )
+    &gt;-&gt; Out ! False
+    &gt;-&gt; In ! Person( Female, "Alexia", "Oranje", 26, 6 )
+    &gt;-&gt; Out ! False
+    &gt;-&gt; In ! Person( Female, "Ariane", "Oranje", 10, 4 )
+    &gt;-&gt; Out ! False
+    &gt;-&gt; In ! Person( Male, "Willem", "Oranje", 27, 4 )
+    &gt;-&gt; Out ! True
+ENDDEF
+</code></pre>
+<p>Mind the <strong>HIT</strong> keyword on first line. This keyword is necessary in order to use it as a <strong>Goal</strong> in the Test Purpose definition below.</p>
+<p>Now we should make sure the generated input for our SUT is synchronized with what this process communicates to the channels. Let’s define the Test Purpose for this:</p>
+<pre><code>PURPDEF PurposeExamples ::=
+    CHAN IN    In 
+    CHAN OUT   Out
+    
+    GOAL examples ::= examples [In,Out] ()
+ENDDEF
+</code></pre>
+<p>Defining the Goal of the Test Purpose with <em>examples</em> process effectively forces the Persons in <em>examples</em> process to be communicated through <em>In</em> channel to <em>SUT</em> and expects the output in <em>Out</em> channel to match whatever is defined in <em>examples</em> process.</p>
+<p>Now we can use this Test Purpose to test SUT with our predetermined inputs.</p>
+<ol>
+<li>Start the SUT: run the <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">Java program</a> in a command window.</li>
+</ol>
+<p><code>$&gt; java LuckyPeople</code></p>
+<ol start="2">
+<li>Start TorXakis: run the <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the LuckyPeople model and PurposeExamples test purpose in another command window.</li>
+</ol>
+<p><code>$&gt; torxakis LuckyPeople.txs PurposeExamples.txs</code></p>
+<ol start="3">
+<li>Set the Model, Test Purpose and SUT for testing: In TorXakis type the following commands:</li>
+</ol>
+<p><code>tester Model PurposeExamples Sut</code></p>
+<ol start="4">
+<li>Test the SUT with predetermined inputs. We have 18 persons, which means we need 36 steps. But TorXakis occasionally adds some Quiescence steps in between, so let’s run TorXakis for 50 steps instead. In TorXakis type the following command:</li>
+</ol>
+<p><code>test 50</code></p>
+<pre><code>TXS &gt;&gt;  .....1: IN: Act { { ( In, [ Person(Male,"Mickey","Mouse",13,1) ] ) } }
+TXS &gt;&gt;  .....2: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  .....3: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....4: IN: Act { { ( In, [ Person(Male,"Donald","Duck",13,3) ] ) } }
+TXS &gt;&gt;  .....5: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  .....6: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....7: IN: Act { { ( In, [ Person(Male,"Luuk","Laar",24,12) ] ) } }
+TXS &gt;&gt;  .....8: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  .....9: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....10: IN: Act { { ( In, [ Person(Female,"Shakira","Ripoll",2,2) ] ) } }
+TXS &gt;&gt;  ....11: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ....12: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....13: IN: Act { { ( In, [ Person(Male,"Michael","Buble",9,9) ] ) } }
+TXS &gt;&gt;  ....14: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ....15: IN: Act { { ( In, [ Person(Female,"Imke","Laar",7,7) ] ) } }
+TXS &gt;&gt;  ....16: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ....17: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....18: IN: Act { { ( In, [ Person(Male,"Huey","Duck",17,10) ] ) } }
+TXS &gt;&gt;  ....19: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....20: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....21: IN: Act { { ( In, [ Person(Male,"Dewey","Duck",17,10) ] ) } }
+TXS &gt;&gt;  ....22: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ....23: IN: Act { { ( In, [ Person(Male,"Louie","Duck",17,10) ] ) } }
+TXS &gt;&gt;  ....24: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....25: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....26: IN: Act { { ( In, [ Person(Male,"Mickey","Mouse",13,1) ] ) } }
+TXS &gt;&gt;  ....27: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ....28: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....29: IN: Act { { ( In, [ Person(Male,"Donald","Duck",13,3) ] ) } }
+TXS &gt;&gt;  ....30: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ....31: IN: Act { { ( In, [ Person(Female,"April","Duck",15,5) ] ) } }
+TXS &gt;&gt;  ....32: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ....33: IN: Act { { ( In, [ Person(Female,"Beatrix","Oranje",31,1) ] ) } }
+TXS &gt;&gt;  ....34: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....35: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....36: IN: Act { { ( In, [ Person(Female,"Maxima","Zorreguieta",17,5) ] ) } }
+TXS &gt;&gt;  ....37: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....38: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....39: IN: Act { { ( In, [ Person(Female,"Amalia","Oranje",7,12) ] ) } }
+TXS &gt;&gt;  ....40: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....41: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....42: IN: Act { { ( In, [ Person(Female,"Alexia","Oranje",26,6) ] ) } }
+TXS &gt;&gt;  ....43: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....44: IN: Act { { ( In, [ Person(Female,"Ariane","Oranje",10,4) ] ) } }
+TXS &gt;&gt;  ....45: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....46: IN: Act { { ( In, [ Person(Male,"Willem","Oranje",27,4) ] ) } }
+TXS &gt;&gt;  ....47: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ....48: OUT: No Output (Quiescence)
+TXS &gt;&gt;  Goal examples: Hit
+TXS &gt;&gt;  PASS
+</code></pre>
+<h3 id="lucky-based-on-gender">Lucky based on gender</h3>
+<p>One of the situations that makes a person lucky is when that person’s sex is different from previous 5 people. Even though our predetermined inputs cover this case, this criteria comes with implied conditions that:</p>
+<ul>
+<li>if <strong>less than 5</strong> previous persons are of the opposite sex then the current person <em>is not lucky</em></li>
+<li>if <strong>more than 5</strong> previous persons are of the opposite sex then the current person <em>is lucky</em></li>
+</ul>
+<p>Covering every possible case that is implied by above conditions by using predetermined input is not only not practical but also defeats the purpose of using TorXakis for Model Based Testing. We should make TorXakis test these situations while still generating test data randomly. We can do it by using a Test Purpose that only enforces the sex of generated Person data and leaves the rest to be generated by TorXakis.</p>
+<p>Let’s create a <em>PurposeLuckyByGender.txs</em> file and define the process and the Test Purpose in it.</p>
+<h4 id="the-process">The process</h4>
+<p>Here is such a <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">Process Definition</a> that can be used for this purpose:</p>
+<pre><code>PROCDEF repeatAndSwitchGender [ In :: Person ; Out :: Bool ] ( pos, length :: Int; s :: Sex) HIT ::=
+        (
+            [[ pos &gt; 1 ]] =&gt;&gt; In ? p [[ sex(p) == s ]] &gt;-&gt; EXIT
+            ##
+            [[ pos == 1 ]] =&gt;&gt; In ? p [[ (sex(p) == s)
+                                        /\ ( not (isLuckyByName(p)))
+                                        /\ ( not (isLuckyByBirthday(p)))
+                                      ]] &gt;-&gt; EXIT
+        )
+        &gt;&gt;&gt; Out ? b
+        &gt;-&gt; (
+                [[pos == length ]] =&gt;&gt; (
+                                         [[ isMale(s) ]] =&gt;&gt; repeatAndSwitchGender [In,Out] (1, length, Female)
+                                       ##
+                                         [[ isFemale(s) ]] =&gt;&gt; repeatAndSwitchGender [In,Out] (1, length+1, Male)
+                                       )
+                ##
+                [[pos &lt; length ]] =&gt;&gt; repeatAndSwitchGender [In, Out] (pos+1,length, s)
+            )
+ENDDEF
+</code></pre>
+<p>Let’s walk through this <a href="https://github.com/TorXakis/TorXakis/wiki/ProcDefs">Process Definition</a> step by step.</p>
+<p>First block in paranthesis <code>**(...)**</code> enforces the criteria on the person data that is communicated through <strong>In</strong> channel:</p>
+<pre><code>(
+    [[ pos &gt; 1 ]] =&gt;&gt; In ? p [[ sex(p) == s ]] &gt;-&gt; EXIT
+    ##
+    [[ pos == 1 ]] =&gt;&gt; In ? p [[ (sex(p) == s)
+                                /\ ( not (isLuckyByName(p)))
+                                /\ ( not (isLuckyByBirthday(p)))
+                              ]] &gt;-&gt; EXIT
+)
+</code></pre>
+<p>If current person <em>is not</em> the first person of current gender (position counter is greater than 1) then we just enforce that its gender is the sex that is passed in as parameter.</p>
+<p>If current person <em>is</em> the first person of current gender (position counter is 1) then we enforce not only that its gender is the sex that is passed in as parameter, but also that this person is not lucky based on other criteria. Because, with this purpose, we want to observe whether the current person is going to be deemed lucky based on the number of people who came before consecutively with opposite sex. E.g. if a Female comes after 6 consecutive Males and is evaluated to be lucky, we want to be sure that it is because of her gender and not her name or birthday.</p>
+<p>“<strong>##</strong>” is the <a href="https://github.com/TorXakis/TorXakis/wiki/Choice_Operator">Choice Operator</a>. It means that either one of those processes are executed, but never both.</p>
+<p>“<strong>EXIT</strong>” keywords at the end of both processes are needed to signal exiting the block defined in paranthesis.</p>
+<p><code>&gt;&gt;&gt; Out ? b</code></p>
+<p>This line just reads from the <strong>Out</strong> channel into <em>b</em> variable. This variable is not going to be used, but it has to be defined since the Test Purpose has to define what should be done with all the channels.</p>
+<p>“<strong>&gt;&gt;&gt;</strong>” is the <a href="https://github.com/TorXakis/TorXakis/wiki/Enable_Operator">Enable Operator</a>. It means that the flow synchronizes on EXIT of multiple processes. Here it signals the continuation after exiting the previous block.</p>
+<p>Next block in paranthesis “<strong>()</strong>” enforces repeating the same sex for a number of times, for both sexes, then increments the repetition number and repeats:</p>
+<pre><code>(
+    [[pos == length ]] =&gt;&gt; (
+                             [[ isMale(s) ]] =&gt;&gt; repeatAndSwitchGender [In,Out] (1, length, Female)
+                           ##
+                             [[ isFemale(s) ]] =&gt;&gt; repeatAndSwitchGender [In,Out] (1, length+1, Male)
+                           )
+    ##
+    [[pos &lt; length ]] =&gt;&gt; repeatAndSwitchGender [In, Out] (pos+1,length, s)
+)
+</code></pre>
+<p>If current position counter (<em>pos</em>) reached the requested <em>length</em>, then switch the genders. We start with Males, so after having requested number (<em>length</em>) of Males in a row, it’s time to request the same number of Females. After having the same number of Females, switch back to Males and increment the requested <em>length</em>.</p>
+<p>If current position counter (<em>pos</em>) is still below the requested <em>length</em>, then just increment the position counter and request another person of the same sex with previous person.</p>
+<p>There’s no upper limit defined for the repetition number (<em>length</em>), so as long as we run TorXakis the generated persons’ genders will be like this: <em>MFMMFFMMMFFFMMMMFFFF</em>…</p>
+<h4 id="the-test-purpose">The Test Purpose</h4>
+<p>Let’s write a Test Purpose that uses <em>repeatAndSwitchGender</em> process to manipulate test data generated by TorXakis:</p>
+<pre><code>PURPDEF PurposeLuckyByGender ::=
+    CHAN IN    In 
+    CHAN OUT   Out
+
+    GOAL luckyByGender ::= repeatAndSwitchGender [In,Out] (1,1,Male)
+ENDDEF
+</code></pre>
+<p>Now we can use this Test Purpose to test SUT for various “Lucky by gender” cases.</p>
+<ol>
+<li>Start the SUT: run the <a href="https://github.com/TorXakis/TorXakis/wiki/Java_program">Java program</a> in a command window.</li>
+</ol>
+<p><code>$&gt; java LuckyPeople</code></p>
+<ol start="2">
+<li>Start TorXakis: run the <a href="https://github.com/TorXakis/TorXakis/wiki/TorXakis">TorXakis</a> with the LuckyPeople model and PurposeLuckyByGender test purpose in another command window.</li>
+</ol>
+<p><code>$&gt; torxakis LuckyPeople.txs PurposeLuckyByGender.txs</code></p>
+<ol start="3">
+<li>Set the Model, Test Purpose and SUT for testing: In TorXakis type the following commands:</li>
+</ol>
+<p><code>tester Model PurposeLuckyByGender Sut</code></p>
+<ol start="4">
+<li>Test the SUT with random data, ensuring coverage of “Lucky by gender” cases. Let’s say we test for repetitions of 1 to 10 i.e.:</li>
+</ol>
+<ul>
+<li>Female after 1 Male</li>
+<li>Male after 1 Female</li>
+<li>Female after 2 Males</li>
+<li>Male after 2 Females</li>
+</ul>
+<p>…</p>
+<ul>
+<li>Female after 9 Males</li>
+<li>Male after 9 Females</li>
+<li>Female after 10 Males</li>
+<li>Male after 10 Females</li>
+</ul>
+<p>This means we have (10*11)/2=55 cases for each gender, 2 steps (In, Out) per case means 110 steps and for both genders including last switch from 10F-to-M <strong>221 steps</strong> in total. But TorXakis occasionally adds some Quiescence steps in between, so let’s run TorXakis for 300 steps instead. In TorXakis type the following command:</p>
+<p><code>test 300</code></p>
+<pre><code>TXS &gt;&gt;  .....1: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....2: IN: Act { { ( In, [ Person(Male,"Ac","Arv",13,5) ] ) } }
+TXS &gt;&gt;  .....3: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  .....4: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....5: IN: Act { { ( In, [ Person(Female,"B","D",19,7) ] ) } }
+TXS &gt;&gt;  .....6: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  .....7: OUT: No Output (Quiescence)
+TXS &gt;&gt;  .....8: IN: Act { { ( In, [ Person(Male,"D","H",29,7) ] ) } }
+TXS &gt;&gt;  .....9: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....10: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....11: IN: Act { { ( In, [ Person(Male,"F","O",30,1) ] ) } }
+TXS &gt;&gt;  ....12: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....13: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....14: IN: Act { { ( In, [ Person(Female,"A","D",2,3) ] ) } }
+TXS &gt;&gt;  ....15: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....16: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ....17: IN: Act { { ( In, [ Person(Female,"C","Pxd",3,12) ] ) } }
+TXS &gt;&gt;  ....18: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ....19: OUT: No Output (Quiescence)
+...
+TXS &gt;&gt;  ...255: IN: Act { { ( In, [ Person(Male,"T","B",31,10) ] ) } }
+TXS &gt;&gt;  ...256: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ...257: IN: Act { { ( In, [ Person(Female,"B","D",29,8) ] ) } }
+TXS &gt;&gt;  ...258: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ...259: IN: Act { { ( In, [ Person(Female,"Yj","L",31,2) ] ) } }
+TXS &gt;&gt;  ...260: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ...261: IN: Act { { ( In, [ Person(Female,"N","H",9,11) ] ) } }
+TXS &gt;&gt;  ...262: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ...263: IN: Act { { ( In, [ Person(Female,"Pdp","A",5,7) ] ) } }
+TXS &gt;&gt;  ...264: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ...265: IN: Act { { ( In, [ Person(Female,"Lh","H",30,11) ] ) } }
+TXS &gt;&gt;  ...266: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ...267: IN: Act { { ( In, [ Person(Female,"Z","P",31,10) ] ) } }
+TXS &gt;&gt;  ...268: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ...269: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ...270: IN: Act { { ( In, [ Person(Female,"V","C",18,9) ] ) } }
+TXS &gt;&gt;  ...271: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ...272: IN: Act { { ( In, [ Person(Female,"Hbx","H",30,1) ] ) } }
+TXS &gt;&gt;  ...273: OUT: Act { { ( Out, [ True ] ) } }
+TXS &gt;&gt;  ...274: IN: Act { { ( In, [ Person(Female,"D","K",18,1) ] ) } }
+TXS &gt;&gt;  ...275: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ...276: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ...277: IN: Act { { ( In, [ Person(Female,"Wp","Pkx",29,12) ] ) } }
+TXS &gt;&gt;  ...278: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  ...279: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ...280: IN: Act { { ( In, [ Person(Male,"G","Ahagpa",14,4) ] ) } }    &lt;&lt;== This is a Male after 10 Females
+TXS &gt;&gt;  ...281: OUT: Act { { ( Out, [ True ] ) } }                            &lt;&lt;== He's lucky based on gender
+TXS &gt;&gt;  ...282: OUT: No Output (Quiescence)
+TXS &gt;&gt;  ...283: IN: Act { { ( In, [ Person(Male,"F","A",30,8) ] ) } }
+TXS &gt;&gt;  ...284: OUT: Act { { ( Out, [ False ] ) } }
+...
+TXS &gt;&gt;  ...299: IN: Act { { ( In, [ Person(Male,"M","P",23,6) ] ) } }
+TXS &gt;&gt;  ...300: OUT: Act { { ( Out, [ False ] ) } }
+TXS &gt;&gt;  PASS
+</code></pre>
+<p>Point for attention: In our <strong>repeatAndSwitchGender</strong> process we didn’t have to tell TorXakis that after switching the gender the next person has to be lucky on unlucky; we just enforced a certain sex to be assigned to current person. TorXakis knows what each person’s luckiness output should be depending on the <strong>Model</strong>.</p></div>
+</body>
+
+</html>
