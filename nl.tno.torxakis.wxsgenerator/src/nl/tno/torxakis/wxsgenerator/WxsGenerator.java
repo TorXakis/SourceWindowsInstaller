@@ -73,12 +73,23 @@ public class WxsGenerator {
 
 		out += generatePackage( indent + "\t");
 		out += generateMedia( indent + "\t");
+		out += generateHomePath( indent + "\t");
 		out += generateTargetDir( indent + "\t" );
 		out += generateFeatures( indent + "\t" );
 		out += generateUi( indent + "\t" );
 
 		out += indent + "</Product>\n";
 
+
+		return out;
+	}
+
+	private String generatePackage(String indent) {
+		String out = "";
+
+		out += indent + "<Package Id='*' Keywords='Installer' Description='TNO TorXakis Installer'\n";
+		out += indent + "\tComments='Copyright (c) 2015-" + Calendar.getInstance().get(Calendar.YEAR) + " TNO and Radboud University' Manufacturer='TNO'\n";
+		out += indent + "\tInstallerVersion='100' Languages='1033' Compressed='yes' SummaryCodepage='1252' />\n";
 
 		return out;
 	}
@@ -92,11 +103,16 @@ public class WxsGenerator {
 		return out;
 	}
 
+	private String generateHomePath(String indent ) {
+		return indent + "<SetDirectory Id='HOMEPATH' Value='[%HOMEDRIVE][%HOMEPATH]' />\n";
+	}
+
 	private String generateTargetDir(String indent ) {
 		String out = "";
 
 		out += indent + "<Directory Id='TARGETDIR' Name='SourceDir'>\n";
 
+		out += generateHomeFolder( indent + "\t" );
 		out += generateProgramFilesFolder( indent + "\t" );
 		out += generatePathEnvironmentVariable( indent + "\t" );
 		out += generatePrograms( indent + "\t" );
@@ -106,14 +122,27 @@ public class WxsGenerator {
 		return out;
 	}
 
-	private String generatePackage(String indent) {
+	private String generateHomeFolder(String indent) {
 		String out = "";
+		FeatureInfo fi;
 
-		out += indent + "<Package Id='*' Keywords='Installer' Description='TNO TorXakis Installer'\n";
-		out += indent + "\tComments='Copyright (c) 2015-" + Calendar.getInstance().get(Calendar.YEAR) + " TNO and Radboud University' Manufacturer='TNO'\n";
-		out += indent + "\tInstallerVersion='100' Languages='1033' Compressed='yes' SummaryCodepage='1252' />\n";
+		out += indent + "<Directory Id='HOMEPATH' Name='UserHome'>\n";
+		out += generateTorxakisConfig(rootFi, indent + "\t" );
+		out += indent + "</Directory>\n";
 
 		return out;
+	}
+
+	public String generateTorxakisConfig( FeatureInfo parent, String indent ) {
+		FeatureInfo fi = new FeatureInfo( parent, "yamlFeature", "Configuration", "TorXakis config YAML file", 1);
+		parent.getChildren().add( fi );
+		featureInfos.add( fi );
+		String componentId = "yamlComponent";
+		fi.getComponentIds().add( componentId );
+
+		return indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "'>\n" +
+				indent + "\t<File Id='yamlFile' Name='.torxakis.yaml' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\.torxakis.yaml'/>\n" +
+				indent + "</Component>\n";
 	}
 
 	private String generateProgramFilesFolder(String indent) {
@@ -152,6 +181,52 @@ public class WxsGenerator {
 		out += indent + "</Directory>\n";
 
 		return out;
+	}
+
+	public String generateTorxakisExecutable( FeatureInfo parent, String indent ) {
+		String out = "";
+		FeatureInfo fi = new FeatureInfo( parent, getFeatureId(), "TorXakis", "The main executable", 1 );
+		parent.getChildren().add( fi );
+		featureInfos.add( fi );
+
+		String componentId = getComponentId();
+
+		fi.getComponentIds().add( componentId );
+
+		out += indent + "<!-- Torxakis Executable-->\n";
+		out += indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' KeyPath='yes'>\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='txsserver.exe' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\txsserver.exe' />\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='txsui.exe' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\txsui.exe' />\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakis.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakis.bat' />\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakisPort.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakisPort.bat' />\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakisServer.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakisServer.bat' />\n";
+		out += indent + "\t<File Id='" + getFileId() + "' Name='license' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\license' />\n";
+		out += indent + "\t<File Id='defaultYamlFile' Name='.torxakis.default.yaml' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\.torxakis.yaml' />\n";
+		out += indent + "</Component>\n";
+		out += indent + "\n";
+
+		return out;
+	}
+
+	public String generateDocumentation( FeatureInfo parent, String indent ) {
+		FeatureInfo fi = new FeatureInfo( parent, getFeatureId(), "Documentation", "The TorXakis manual", 1 );
+		parent.getChildren().add( fi );
+		featureInfos.add( fi );
+
+		String componentId = getComponentId();
+
+		fi.getComponentIds().add( componentId );
+
+		return
+				indent + "<!-- Torxakis Documentation -->\n" +
+						indent + "<Directory Id='" + getDirectoryId() + "' Name='Docs'>\n" +
+						indent + "\n" +
+						indent + "\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "'>\n" +
+						indent + "\t\t<File Id='" + getFileId() + "' Name='Modelling Examples.html' DiskId='1' Source='" + tagFolderPath + "\\WindowsInstaller\\Modelling Examples.html' KeyPath='yes'/>\n" +
+						indent + "\t</Component>\n" +
+						indent + "\n" +
+						indent + "</Directory>\n" +
+						indent + "\n";
 	}
 
 	private String generateUi(String indent) {
@@ -227,75 +302,8 @@ public class WxsGenerator {
             indent + "\t\t</Component>\n" +
             indent + "\t</Directory>\n" +
             indent + "</Directory>\n";
-
 		return out;
 	}
-
-
-
-	public String generateHeader( String versionNumber ) {
-		return
-			"<?xml version='1.0' encoding='windows-1252'?>\n" +
-			"<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>\n" +
-			"\t<Product Name='TorXakis' Id='" + java.util.UUID.randomUUID() + "' UpgradeCode='" + java.util.UUID.randomUUID() + "'\n" +
-			"\t\tLanguage='1033' Codepage='1252' Version='" + versionNumber + "' Manufacturer='TNO'>\n" +
-			"\n" +
-			"\t<Package Id='*' Keywords='Installer' Description='TNO TorXakis Installer'\n" +
-			"\t\tComments='Copyright (c) 2015-" + Calendar.getInstance().get(Calendar.YEAR) + " TNO and Radboud University' Manufacturer='TNO'\n" +
-			"\t\tInstallerVersion='100' Languages='1033' Compressed='yes' SummaryCodepage='1252' />\n" +
-			"\n" +
-			"\t<Media Id='1' Cabinet='TorXakis.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />\n" +
-			"\t<Property Id='DiskPrompt' Value='TNO TorXakis Installation [1]' />\n" +
-			"\n" +
-			"\t<Directory Id='TARGETDIR' Name='SourceDir'>\n";
-	}
-
-
-	public String generateTorxakisExecutable( FeatureInfo parent, String indent ) {
-		String out = "";
-		FeatureInfo fi = new FeatureInfo( parent, getFeatureId(), "TorXakis", "The main executable", 1 );
-		parent.getChildren().add( fi );
-		featureInfos.add( fi );
-
-		String componentId = getComponentId();
-
-		fi.getComponentIds().add( componentId );
-
-		out += indent + "<!-- Torxakis Executable-->\n";
-		out += indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' KeyPath='yes'>\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='txsserver.exe' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\txsserver.exe' />\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='txsui.exe' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\txsui.exe' />\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakis.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakis.bat' />\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakisPort.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakisPort.bat' />\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='torxakisServer.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakisServer.bat' />\n";
-		out += indent + "\t<File Id='" + getFileId() + "' Name='license' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\license' />\n";
-		out += indent + "</Component>\n";
-		out += indent + "\n";;
-
-		return out;
-	}
-
-	public String generateDocumentation( FeatureInfo parent, String indent ) {
-		FeatureInfo fi = new FeatureInfo( parent, getFeatureId(), "Documentation", "The TorXakis manual", 1 );
-		parent.getChildren().add( fi );
-		featureInfos.add( fi );
-
-		String componentId = getComponentId();
-
-		fi.getComponentIds().add( componentId );
-
-		return
-			indent + "<!-- Torxakis Documentation -->\n" +
-			indent + "<Directory Id='" + getDirectoryId() + "' Name='Docs'>\n" +
-			indent + "\n" +
-			indent + "\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "'>\n" +
-			indent + "\t\t<File Id='" + getFileId() + "' Name='Modelling Examples.html' DiskId='1' Source='" + tagFolderPath + "\\WindowsInstaller\\Modelling Examples.html' KeyPath='yes'/>\n" +
-			indent + "\t</Component>\n" +
-			indent + "\n" +
-			indent + "</Directory>\n" +
-			indent + "\n";
-	}
-
 
 	public String generateDirectory( String indent, TDirectory directory, FeatureInfo featureInfo ) {
 		String out = "";
