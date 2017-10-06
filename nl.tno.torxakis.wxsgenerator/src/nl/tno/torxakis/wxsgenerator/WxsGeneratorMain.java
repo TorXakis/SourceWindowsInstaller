@@ -72,7 +72,7 @@ public class WxsGeneratorMain {
                 deleteDirectory(cvc4Folder);
             }
             cvc4Folder.mkdir();
-            Files.move(cvc4exeFile, Paths.get(cvc4FolderPath.toString(), cvc4exeFileName));
+            Files.move(cvc4exeFile, Paths.get(cvc4FolderPath.toString(), "cvc4.exe"));
 
             System.out.println("Downloading Eclipse Plugin from:" + eclipsePluginUrl);
             Path eclipsePluginZipFilePath = download(eclipsePluginUrl, tagFolderPath);
