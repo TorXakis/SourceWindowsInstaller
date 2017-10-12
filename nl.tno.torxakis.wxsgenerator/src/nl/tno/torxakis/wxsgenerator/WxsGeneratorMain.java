@@ -39,12 +39,12 @@ public class WxsGeneratorMain {
         System.out.println("torxakisFolder = " + config.getTorxakisFolder());
         System.out.println("nppFolder = " + config.getNppFolder());
 
-        final String tagFolderPath = ".\\v" + config.getVersion();
+        final String tagFolderPathString = ".\\v" + config.getVersion();
         final String examplesPath = config.getTorxakisFolder() + "\\examps";
         final String editorPluginsFolderPath = ".\\EditorPlugins";
 
         System.out.println("Ensuring WindowsInstaller directory...");
-        File winInstallerDirectory = new File(tagFolderPath + "\\WindowsInstaller");
+        File winInstallerDirectory = new File(tagFolderPathString + "\\WindowsInstaller");
         if (!winInstallerDirectory.exists()) {
             winInstallerDirectory.mkdir();
         }
@@ -52,30 +52,39 @@ public class WxsGeneratorMain {
         final String editorPluginsTargetPath = winInstallerFolderPath + "\\EditorPlugins";
 
         try {
-            System.out.println("Downloading z3 from:" + z3Url);
-            Path z3zipFile = download(z3Url, tagFolderPath);
-            String z3zipFileName = z3zipFile.getFileName().toString();
-            String z3UnzipFolderPath = Paths.get(z3zipFile.getParent().toString(), z3zipFileName.substring(0, z3zipFileName.length() - 4)).toString();
+            String z3zipFileName = getFileNameFromUrl(z3Url);
+            File z3zipFile = new File(tagFolderPathString, z3zipFileName);
+            if (z3zipFile.exists()) {
+                System.out.println("z3 file already exists:" + z3zipFileName);
+            } else {
+                System.out.println("Downloading z3 from:" + z3Url);
+                download(z3Url, tagFolderPathString);
+            }
+            String z3UnzipFolderPath = Paths.get(tagFolderPathString, z3zipFileName.substring(0, z3zipFileName.length() - 4)).toString();
             File z3UnzipFolder = new File(z3UnzipFolderPath);
             if (z3UnzipFolder.exists()) {
                 deleteDirectory(z3UnzipFolder);
             }
             System.out.println(String.format("Unzipping %s to %s", z3zipFileName, z3UnzipFolderPath));
-            unzip(z3zipFile.toString(), z3UnzipFolderPath);
+            unzip(z3zipFile.getPath().toString(), z3UnzipFolderPath);
 
-            System.out.println("Downloading cvc4 from:" + cvc4Url);
-            Path cvc4exeFile = download(cvc4Url, tagFolderPath);
-            String cvc4exeFileName = cvc4exeFile.getFileName().toString();
-            Path cvc4FolderPath = Paths.get(cvc4exeFile.getParent().toString(), cvc4exeFileName.substring(0, cvc4exeFileName.length() - 4));
-            File cvc4Folder = new File(cvc4FolderPath.toString());
-            if (cvc4Folder.exists()) {
-                deleteDirectory(cvc4Folder);
+            String cvc4FileName = getFileNameFromUrl(cvc4Url);
+            Path cvc4FolderPath = Paths.get(tagFolderPathString, cvc4FileName.substring(0, cvc4FileName.length() - 4));
+            File cvc4File = new File(cvc4FolderPath.toString(), "cvc4.exe");
+            if (cvc4File.exists()) {
+                System.out.println("cvc4 file already exists:" + cvc4FileName);
+            } else {
+                System.out.println("Downloading cvc4 from:" + cvc4Url);
+                Path cvc4exeFilePath = download(cvc4Url, tagFolderPathString);
+                File cvc4Folder = new File(cvc4FolderPath.toString());
+                if (cvc4Folder.exists()) {
+                    cvc4Folder.mkdir();
+                }
+                Files.move(cvc4exeFilePath, Paths.get(cvc4FolderPath.toString(), "cvc4.exe"));
             }
-            cvc4Folder.mkdir();
-            Files.move(cvc4exeFile, Paths.get(cvc4FolderPath.toString(), "cvc4.exe"));
 
             System.out.println("Downloading Eclipse Plugin from:" + eclipsePluginUrl);
-            Path eclipsePluginZipFilePath = download(eclipsePluginUrl, tagFolderPath);
+            Path eclipsePluginZipFilePath = download(eclipsePluginUrl, tagFolderPathString);
 
             System.out.println("prepareEditorPluginsFolder() with:");
             System.out.println("eclipsePluginZipFilePath = " + eclipsePluginZipFilePath);
@@ -85,16 +94,16 @@ public class WxsGeneratorMain {
             prepareEditorPluginsFolder(eclipsePluginZipFilePath.toString(), config.getNppFolder(), editorPluginsFolderPath, editorPluginsTargetPath);
 
             System.out.println("generateLicenseRtf() with:");
-            System.out.println("tagFolderPath = " + tagFolderPath);
+            System.out.println("tagFolderPathString = " + tagFolderPathString);
             System.out.println("winInstallerFolderPath = " + winInstallerFolderPath);
-            generateLicenseRtf(tagFolderPath, winInstallerFolderPath);
+            generateLicenseRtf(tagFolderPathString, winInstallerFolderPath);
 
             TDirectory exampsContent = getDirectory(examplesPath);
             TDirectory z3Content = getDirectory(z3UnzipFolderPath);
             TDirectory cvc4Content = getDirectory(cvc4FolderPath.toString());
             TDirectory editorPluginsContent = getDirectory(editorPluginsTargetPath);
             WxsGenerator generator =
-                    new WxsGenerator(z3Content, cvc4Content, exampsContent, editorPluginsContent, config.getVersion(), tagFolderPath);
+                    new WxsGenerator(z3Content, cvc4Content, exampsContent, editorPluginsContent, config.getVersion(), tagFolderPathString);
 
             String result = generator.generate();
 
@@ -108,6 +117,11 @@ public class WxsGeneratorMain {
             e.printStackTrace();
             System.exit(-1);
         }
+    }
+
+    private static String getFileNameFromUrl(String url) {
+        String[] urlParts = url.split("/");
+        return urlParts[urlParts.length - 1];
     }
 
     private static Path download(String sourceURL, String targetDirectory) throws IOException {
