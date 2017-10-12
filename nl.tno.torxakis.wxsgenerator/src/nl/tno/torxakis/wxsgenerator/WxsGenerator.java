@@ -150,33 +150,31 @@ public class WxsGenerator {
 		FeatureInfo fi;
 
 		out += indent + "<Directory Id='ProgramFilesFolder' Name='PFiles'>\n";
-		out += indent + "\t<Directory Id='" + getDirectoryId() + "' Name='TorXakis'>\n";
-		out += indent + "\t\t<Directory Id='INSTALLDIR' Name='TorXakis'>\n";
+		out += indent + "\t<Directory Id='INSTALLDIR' Name='TorXakis'>\n";
 
-		out += generateTorxakisExecutable(rootFi, indent + "\t\t\t" );
-		out += generateDocumentation( rootFi, indent + "\t\t\t" );
+		out += generateTorxakisExecutable(rootFi, indent + "\t\t" );
+		out += generateDocumentation( rootFi, indent + "\t\t" );
 
 		fi = new FeatureInfo( rootFi, getFeatureId(), "Z3", "Z3 Problem Solver", 1);
 		rootFi.getChildren().add( fi );
-		out += generateDirectory( indent + "\t\t\t", z3Directory, fi );
+		out += generateDirectory( indent + "\t\t", z3Directory, fi );
 		featureInfos.add( fi );
 
 		fi = new FeatureInfo( rootFi, getFeatureId(), "CVC4", "CVC4 Problem Solver", 1);
 		rootFi.getChildren().add( fi );
-		out += generateDirectory( indent + "\t\t\t", cvc4Directory, fi );
+		out += generateDirectory( indent + "\t\t", cvc4Directory, fi );
 		featureInfos.add( fi );
 
 		fi = new FeatureInfo( rootFi, getFeatureId(),  "Examples", "TorXakis examples", 1 );
 		rootFi.getChildren().add( fi );
-		out += generateDirectory( indent + "\t\t\t", exampsDirectory, fi );
+		out += generateDirectory( indent + "\t\t", exampsDirectory, fi );
 		featureInfos.add( fi );
 
 		fi = new FeatureInfo( rootFi, getFeatureId(), "Plug-ins", "Editor Plug-ins", 1 );
 		rootFi.getChildren().add( fi );
-		out += generateDirectory( indent + "\t\t\t", editorPluginsDirectory, fi );
+		out += generateDirectory( indent + "\t\t", editorPluginsDirectory, fi );
 		featureInfos.add( fi );
 
-		out += indent + "\t\t</Directory>\n";
 		out += indent + "\t</Directory>\n";
 		out += indent + "</Directory>\n";
 
