@@ -69,7 +69,7 @@ public class WxsGenerator {
 		String out = "";
 
 		out += indent + "<Product Name='TorXakis' Id='" + java.util.UUID.randomUUID() + "' UpgradeCode='" + java.util.UUID.randomUUID() + "'\n";
-		out += indent +	"\tLanguage='1033' Codepage='1252' Version='" + versionNumber + "' Manufacturer='TNO'>\n";
+		out += indent +	"\tLanguage='1033' Codepage='1252' Version='" + versionNumber + "' Manufacturer='torxakis.org'>\n";
 
 		out += generatePackage( indent + "\t");
 		out += generateMedia( indent + "\t");
@@ -87,8 +87,8 @@ public class WxsGenerator {
 	private String generatePackage(String indent) {
 		String out = "";
 
-		out += indent + "<Package Id='*' Keywords='Installer' Description='TNO TorXakis Installer'\n";
-		out += indent + "\tComments='Copyright (c) 2015-" + Calendar.getInstance().get(Calendar.YEAR) + " TNO and Radboud University' Manufacturer='TNO'\n";
+		out += indent + "<Package Id='*' Keywords='Installer' Description='TorXakis Installer'\n";
+		out += indent + "\tComments='Copyright (c) 2015-" + Calendar.getInstance().get(Calendar.YEAR) + " TNO and Radboud University' Manufacturer='torxakis.org'\n";
 		out += indent + "\tInstallerVersion='100' Languages='1033' Compressed='yes' SummaryCodepage='1252' />\n";
 
 		return out;
@@ -98,7 +98,7 @@ public class WxsGenerator {
 		String out = "";
 
 		out += indent + "<Media Id='1' Cabinet='TorXakis.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />\n";
-		out += indent + "<Property Id='DiskPrompt' Value='TNO TorXakis Installation [1]' />\n";
+		out += indent + "<Property Id='DiskPrompt' Value='TorXakis Installation [1]' />\n";
 
 		return out;
 	}
@@ -150,7 +150,7 @@ public class WxsGenerator {
 		FeatureInfo fi;
 
 		out += indent + "<Directory Id='ProgramFilesFolder' Name='PFiles'>\n";
-		out += indent + "\t<Directory Id='" + getDirectoryId() + "' Name='TNO TorXakis'>\n";
+		out += indent + "\t<Directory Id='" + getDirectoryId() + "' Name='TorXakis'>\n";
 		out += indent + "\t\t<Directory Id='INSTALLDIR' Name='TorXakis'>\n";
 
 		out += generateTorxakisExecutable(rootFi, indent + "\t\t\t" );
@@ -295,7 +295,7 @@ public class WxsGenerator {
 
 		String out =
 			indent + "<Directory Id='" + getDirectoryId() + "' Name='Programs'>\n" +
-			indent + "\t<Directory Id='" + programMenuDir + "' Name='TNO TorXakis'>\n" +
+			indent + "\t<Directory Id='" + programMenuDir + "' Name='TorXakis'>\n" +
 			indent + "\t\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "'>\n" +
 			indent + "\t\t\t<RemoveFolder Id='" + programMenuDir + "' On='uninstall' />\n" +
             indent + "\t\t\t<RegistryValue Root='HKCU' Key='Software\\[Manufacturer]\\[ProductName]' Type='string' Value='' KeyPath='yes' />\n" +
