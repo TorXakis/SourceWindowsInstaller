@@ -4,19 +4,17 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WxsConfig {
+class WxsConfig {
     private boolean isInvalid = true;
     private List<String> errors = new ArrayList<>();
-    private File configFile;
     private String z3Url;
     private String cvc4Url;
-    private String version;
     private String torxakisFolder;
     private String eclipsePluginUrl;
     private String nppFolder;
 
-    WxsConfig(String configFilePath) {
-        configFile = new File(configFilePath);
+    WxsConfig(String configFilePath, String tagFolder) {
+        File configFile = new File(configFilePath);
         if (!configFile.exists()) {
             errors.add(String.format("Config file %s doesn't exist", configFilePath));
             return;
@@ -33,7 +31,7 @@ public class WxsConfig {
             return;
         }
 
-        validate();
+        validate(tagFolder);
     }
 
     private void process(String line) {
@@ -49,9 +47,6 @@ public class WxsConfig {
             case "cvc4Url":
                 cvc4Url = parts[1];
                 break;
-            case "version":
-                version = parts[1];
-                break;
             case "torxakisFolder":
                 torxakisFolder = parts[1];
                 break;
@@ -66,7 +61,7 @@ public class WxsConfig {
         }
     }
 
-    private void validate() {
+    private void validate(String tagFolder) {
         if (isBlank(z3Url)) {
             errors.add("z3Url is blank.");
         }
@@ -75,16 +70,12 @@ public class WxsConfig {
             errors.add("cvc4Url is blank.");
         }
 
-        if (isBlank(version)) {
-            errors.add("version is blank.");
-        }
-
         if (isBlank(torxakisFolder)) {
             errors.add("torxakisFolder is blank.");
         } else {
-            File torxakisDirectory = new File(torxakisFolder);
+            File torxakisDirectory = new File(tagFolder + "\\" + torxakisFolder);
             if (!torxakisDirectory.exists()) {
-                errors.add(String.format("torxakisFolder '%s' does not exist", torxakisFolder));
+                errors.add(String.format("torxakisFolder '%s' does not exist", torxakisDirectory.getPath()));
             }
         }
 
@@ -95,9 +86,9 @@ public class WxsConfig {
         if (isBlank(nppFolder)) {
             errors.add("nppFolder is blank.");
         } else {
-            File nppDirectory = new File(nppFolder);
+            File nppDirectory = new File(tagFolder + "\\" + nppFolder);
             if (!nppDirectory.exists()) {
-                errors.add(String.format("nppFolder '%s' does not exist", nppFolder));
+                errors.add(String.format("nppFolder '%s' does not exist", nppDirectory.getPath()));
             }
         }
 
@@ -116,20 +107,12 @@ public class WxsConfig {
         return errors;
     }
 
-    public File getConfigFile() {
-        return configFile;
-    }
-
     String getZ3Url() {
         return z3Url;
     }
 
     String getCvc4Url() {
         return cvc4Url;
-    }
-
-    String getVersion() {
-        return version;
     }
 
     String getTorxakisFolder() {

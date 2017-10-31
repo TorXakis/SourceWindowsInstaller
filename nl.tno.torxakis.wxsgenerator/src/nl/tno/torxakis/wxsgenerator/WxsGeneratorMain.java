@@ -7,20 +7,22 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 public class WxsGeneratorMain {
-    final static String WXS_FILE_NAME = "TorXakis.wxs";
+    final private static String WXS_FILE_NAME = "TorXakis.wxs";
 
     public static void main(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Usage: WxsGenerator <config file path>");
+        if (args.length != 2) {
+            System.out.println("Usage: WxsGenerator <version> <config file path>");
             return;
         }
-        String configPath = args[0];
+        String version = args[0];
+        System.out.println("version = " + version);
+        String configPath = args[1];
         System.out.println("configPath = " + configPath);
 
-        WxsConfig config = new WxsConfig(configPath);
+        final String tagFolderPathString = ".\\v" + version;
+        WxsConfig config = new WxsConfig(configPath, tagFolderPathString);
         if (config.isInvalid()) {
             System.out.println(String.format("Config file %s is invalid.", configPath));
             System.out.println("- " + String.join(System.lineSeparator() + "- ", config.getErrors()));
@@ -35,12 +37,12 @@ public class WxsGeneratorMain {
         String eclipsePluginUrl = config.getEclipsePluginUrl();
         System.out.println("eclipsePluginUrl= " + eclipsePluginUrl);
 
-        System.out.println("version = " + config.getVersion());
-        System.out.println("torxakisFolder = " + config.getTorxakisFolder());
-        System.out.println("nppFolder = " + config.getNppFolder());
+        final String torxakisFolder = tagFolderPathString + "\\" + config.getTorxakisFolder();
+        System.out.println("torxakisFolder = " + torxakisFolder);
+        final String nppFolder = tagFolderPathString + "\\" + config.getNppFolder();
+        System.out.println("nppFolder = " + nppFolder);
 
-        final String tagFolderPathString = ".\\v" + config.getVersion();
-        final String examplesPath = config.getTorxakisFolder() + "\\examps";
+        final String examplesPath = torxakisFolder + "\\examps";
         final String editorPluginsFolderPath = ".\\EditorPlugins";
 
         System.out.println("Ensuring WindowsInstaller directory...");
@@ -66,7 +68,7 @@ public class WxsGeneratorMain {
                 deleteDirectory(z3UnzipFolder);
             }
             System.out.println(String.format("Unzipping %s to %s", z3zipFileName, z3UnzipFolderPath));
-            unzip(z3zipFile.getPath().toString(), z3UnzipFolderPath);
+            unzip(z3zipFile.getPath(), z3UnzipFolderPath);
 
             String cvc4FileName = getFileNameFromUrl(cvc4Url);
             Path cvc4FolderPath = Paths.get(tagFolderPathString, cvc4FileName.substring(0, cvc4FileName.length() - 4));
@@ -88,10 +90,10 @@ public class WxsGeneratorMain {
 
             System.out.println("prepareEditorPluginsFolder() with:");
             System.out.println("eclipsePluginZipFilePath = " + eclipsePluginZipFilePath);
-            System.out.println("nppPluginPath = " + config.getNppFolder());
+            System.out.println("nppPluginPath = " + nppFolder);
             System.out.println("editorPluginsFolderPath = " + editorPluginsFolderPath);
             System.out.println("editorPluginsTargetPath = " + editorPluginsTargetPath);
-            prepareEditorPluginsFolder(eclipsePluginZipFilePath.toString(), config.getNppFolder(), editorPluginsFolderPath, editorPluginsTargetPath);
+            prepareEditorPluginsFolder(eclipsePluginZipFilePath.toString(), nppFolder, editorPluginsFolderPath, editorPluginsTargetPath);
 
             System.out.println("generateLicenseRtf() with:");
             System.out.println("tagFolderPathString = " + tagFolderPathString);
@@ -103,7 +105,7 @@ public class WxsGeneratorMain {
             TDirectory cvc4Content = getDirectory(cvc4FolderPath.toString());
             TDirectory editorPluginsContent = getDirectory(editorPluginsTargetPath);
             WxsGenerator generator =
-                    new WxsGenerator(z3Content, cvc4Content, exampsContent, editorPluginsContent, config.getVersion(), tagFolderPathString);
+                    new WxsGenerator(z3Content, cvc4Content, exampsContent, editorPluginsContent, version, tagFolderPathString);
 
             String result = generator.generate();
 
@@ -210,7 +212,7 @@ public class WxsGeneratorMain {
         });
     }
 
-    public static boolean deleteDirectory(File dir) {
+    private static boolean deleteDirectory(File dir) {
         if (!dir.exists() || !dir.isDirectory()) {
             return false;
         }
@@ -234,7 +236,7 @@ public class WxsGeneratorMain {
         return root.getDirectories().get(0);
     }
 
-    public static void visitAllDirsAndFiles(File dir, TDirectory directory) {
+    private static void visitAllDirsAndFiles(File dir, TDirectory directory) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
             TDirectory childDirectory = new TDirectory(dir.toString());

@@ -98,7 +98,7 @@ IF EXIST %TAG_NAME%\WindowsInstaller (
 	ECHO Removing old "%TAG_NAME%\WindowsInstaller" folder
 	rmdir %TAG_NAME%\WindowsInstaller /s /q
 )
-java -jar WxsGenerator.jar %CONFIG_FILE%
+java -jar WxsGenerator.jar %TORXAKIS_VERSION% %CONFIG_FILE%
 ECHO Finished.
 
 :CopyInstallerImages
