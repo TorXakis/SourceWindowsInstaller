@@ -79,7 +79,7 @@ public class WxsGeneratorMain {
                 System.out.println("Downloading cvc4 from:" + cvc4Url);
                 Path cvc4exeFilePath = download(cvc4Url, tagFolderPathString);
                 File cvc4Folder = new File(cvc4FolderPath.toString());
-                if (cvc4Folder.exists()) {
+                if (!cvc4Folder.exists()) {
                     cvc4Folder.mkdir();
                 }
                 Files.move(cvc4exeFilePath, Paths.get(cvc4FolderPath.toString(), "cvc4.exe"));
