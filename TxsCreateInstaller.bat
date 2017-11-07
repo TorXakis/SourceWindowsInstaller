@@ -71,7 +71,7 @@ copy %ORIGINAL_LOC%\buildinfo.bat .
 call buildinfo.bat > sys/core/src/BuildInfo.hs
 ECHO Building Torxakis executable
 stack setup
-stack build --fast -v --cabal-verbose
+stack build -v --cabal-verbose
 
 REM no easy way to assign a variable from command's result, so we do this
 for /f "tokens=* usebackq" %%f in (`stack.exe path --local-install-root`) do (
