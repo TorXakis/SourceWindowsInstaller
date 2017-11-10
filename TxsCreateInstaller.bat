@@ -35,6 +35,7 @@ ECHO Finished.
 :CreateTorXakisVersionInfo
 ECHO Creating TorXakis VersionInfo.hs file
 SET VERSIONINFOFILE=sys/core/src/VersionInfo.hs
+for /f "delims=" %%a in ('git rev-parse HEAD') do @set COMMIT_HASH=%%a
 ECHO at %VERSIONINFOFILE%
 echo {- > %VERSIONINFOFILE%
 type copyright.txt >> %VERSIONINFOFILE%
@@ -42,7 +43,7 @@ echo -} >> %VERSIONINFOFILE%
 echo module VersionInfo >> %VERSIONINFOFILE%
 echo where >> %VERSIONINFOFILE%
 echo version :: String >> %VERSIONINFOFILE%
-echo version = "%TORXAKIS_VERSION%" >> %VERSIONINFOFILE%
+echo version = "%TORXAKIS_VERSION% (commit: %COMMIT_HASH:~0,7%)" >> %VERSIONINFOFILE%
 ECHO Finished.
 
 :CheckoutPlugins
@@ -113,12 +114,12 @@ echo Done
 
 :CompileWxs
 ECHO Compiling Wxs File
-candle -o %TAG_NAME%\WindowsInstaller\ %TAG_NAME%\WindowsInstaller\TorXakis.wxs 
+"%WIX%bin\candle" -o %TAG_NAME%\WindowsInstaller\ %TAG_NAME%\WindowsInstaller\TorXakis.wxs 
 ECHO Compiled.
 
 :LinkWxs
 ECHO Linking Wxs File
-light -o %TAG_NAME%\WindowsInstaller\TorXakis.msi -ext WixUIExtension %TAG_NAME%\WindowsInstaller\TorXakis.wixobj
+"%WIX%bin\light" -o %TAG_NAME%\WindowsInstaller\TorXakis.msi -ext WixUIExtension %TAG_NAME%\WindowsInstaller\TorXakis.wixobj
 ECHO Linked.
 
 CD %ORIGINAL_LOC%
