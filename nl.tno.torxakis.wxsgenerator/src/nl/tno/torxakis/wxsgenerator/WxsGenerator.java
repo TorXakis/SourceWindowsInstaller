@@ -107,7 +107,7 @@ public class WxsGenerator {
                indent + "<Property Id=\"USERHOMEFOLDER\" >\n" +
                indent + "\t<DirectorySearch Id=\"UserHome\" Path=\"[HOMEDIR]\" ></DirectorySearch>\n" +
                indent + "</Property>\n" +
-               indent + "<Condition Message=\"User home directory (%HOMEDRIVE% and %HOMEPATH%) is set to '[%HOMEPATH]' in drive [%HOMEDRIVE], but it is unavailable.\">\n" +
+               indent + "<Condition Message=\"User home directory (%HOMEPATH% and %HOMEDRIVE%) is set to '[%HOMEPATH]' in drive [%HOMEDRIVE], but it is unavailable.\">\n" +
                indent + "\t<![CDATA[USERHOMEFOLDER]]>\n" +
                indent + "</Condition>\n";
     }
