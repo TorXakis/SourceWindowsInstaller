@@ -6,7 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class WxsGenerator {
+class WxsGenerator {
     private final static String COMPONENT_PREFIX = "Component";
     private final static String FILE_PREFIX = "File";
     private final static String FEATURE_PREFIX = "Feature";
@@ -19,10 +19,10 @@ public class WxsGenerator {
     private int featureId = 0;
     private int environmentId = 0;
 
-    private List<String> pathDirectories = new ArrayList<String>();
-    private List<String> addToPath = new ArrayList<String>();
+    private List<String> pathDirectories = new ArrayList<>();
+    private List<String> addToPath = new ArrayList<>();
 
-    private List<FeatureInfo> featureInfos = new ArrayList<FeatureInfo>();
+    private List<FeatureInfo> featureInfos = new ArrayList<>();
     private FeatureInfo rootFi;
     private String versionNumber = "";
     private String tagFolderPath = "";
@@ -31,7 +31,7 @@ public class WxsGenerator {
     private TDirectory exampsDirectory = null;
     private TDirectory editorPluginsDirectory = null;
 
-    public WxsGenerator(
+    WxsGenerator(
             TDirectory z3Directory,
             TDirectory cvc4Directory,
             TDirectory exampsDirectory,
@@ -46,12 +46,12 @@ public class WxsGenerator {
         this.tagFolderPath = tagFolderPath;
     }
 
-    public String generate() {
+    String generate() {
         String out = "";
         pathDirectories.add(z3Directory.getName() + "\\bin");
         pathDirectories.add(cvc4Directory.getName());
 
-        rootFi = new FeatureInfo(null, getFeatureId(), "TorXakis", "The complete package", "expand", 1, "INSTALLDIR");
+        rootFi = new FeatureInfo(null, getFeatureId(), "TorXakis", "The complete package", "expand", 1, "INSTALLDIR", false);
         featureInfos.add(rootFi);
 
 
@@ -129,7 +129,6 @@ public class WxsGenerator {
 
     private String generateHomeFolder(String indent) {
         String out = "";
-        FeatureInfo fi;
 
         out += indent + "<Directory Id='HOMEDIR' Name='UserHome'>\n";
         out += generateTorxakisConfig(rootFi, indent + "\t");
@@ -138,7 +137,7 @@ public class WxsGenerator {
         return out;
     }
 
-    public String generateTorxakisConfig(FeatureInfo parent, String indent) {
+    private String generateTorxakisConfig(FeatureInfo parent, String indent) {
         FeatureInfo fi = new FeatureInfo(parent, "yamlFeature", "Configuration", "TorXakis config YAML file", 1);
         parent.getChildren().add(fi);
         featureInfos.add(fi);
@@ -160,7 +159,7 @@ public class WxsGenerator {
         out += generateTorxakisExecutable(rootFi, indent + "\t\t");
         out += generateDocumentation(rootFi, indent + "\t\t");
 
-        fi = new FeatureInfo(rootFi, getFeatureId(), "Z3", "Z3 Problem Solver", 1);
+        fi = new FeatureInfo(rootFi, getFeatureId(), "Z3", "Z3 Problem Solver", 1, false);
         rootFi.getChildren().add(fi);
         out += generateDirectory(indent + "\t\t", z3Directory, fi);
         featureInfos.add(fi);
@@ -186,9 +185,9 @@ public class WxsGenerator {
         return out;
     }
 
-    public String generateTorxakisExecutable(FeatureInfo parent, String indent) {
+    private String generateTorxakisExecutable(FeatureInfo parent, String indent) {
         String out = "";
-        FeatureInfo fi = new FeatureInfo(parent, getFeatureId(), "TorXakis", "The main executable", 1);
+        FeatureInfo fi = new FeatureInfo(parent, getFeatureId(), "TorXakis", "The main executable", 1, false);
         parent.getChildren().add(fi);
         featureInfos.add(fi);
 
@@ -211,8 +210,9 @@ public class WxsGenerator {
         return out;
     }
 
-    public String generateDocumentation(FeatureInfo parent, String indent) {
-        FeatureInfo fi = new FeatureInfo(parent, getFeatureId(), "Documentation", "The TorXakis manual", 1);
+    private String generateDocumentation(FeatureInfo parent, String indent) {
+        FeatureInfo fi = new FeatureInfo(parent, getFeatureId(), "Documentation",
+                "Explanation of Modelling Examples", 1);
         parent.getChildren().add(fi);
         featureInfos.add(fi);
 
@@ -308,7 +308,7 @@ public class WxsGenerator {
         return out;
     }
 
-    public String generateDirectory(String indent, TDirectory directory, FeatureInfo featureInfo) {
+    private String generateDirectory(String indent, TDirectory directory, FeatureInfo featureInfo) {
         String out = "";
         String directoryId = getDirectoryId();
 
