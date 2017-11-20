@@ -11,10 +11,11 @@ public class FeatureInfo {
 	private String display = "";
 	private int level = -1;
 	private String configurableDirectory = "";
-	private List<String> componentIds = new ArrayList<String>();
-	private List<FeatureInfo> children = new ArrayList<FeatureInfo>();
-	
-	public FeatureInfo( FeatureInfo parent, String id, String title, String description, String display, int level, String configurableDirectory ) {
+	private Boolean allowAbsent = true;
+	private List<String> componentIds = new ArrayList<>();
+	private List<FeatureInfo> children = new ArrayList<>();
+
+	FeatureInfo(FeatureInfo parent, String id, String title, String description, String display, int level, String configurableDirectory, boolean allowAbsent) {
 		this.parent = parent;
 		this.id = id;
 		this.title = title;
@@ -22,9 +23,19 @@ public class FeatureInfo {
 		this.display = display;
 		this.level = level;
 		this.configurableDirectory = configurableDirectory;
+		this.allowAbsent = allowAbsent;
 	}
 
-	public FeatureInfo( FeatureInfo parent, String id, String title, String description, int level ) {
+	FeatureInfo(FeatureInfo parent, String id, String title, String description, int level, boolean allowAbsent) {
+		this.parent = parent;
+		this.id = id;
+		this.title = title;
+		this.description = description;
+		this.level = level;
+		this.allowAbsent = allowAbsent;
+	}
+
+	FeatureInfo(FeatureInfo parent, String id, String title, String description, int level) {
 		this.parent = parent;
 		this.id = id;
 		this.title = title;
@@ -32,39 +43,11 @@ public class FeatureInfo {
 		this.level = level;
 	}
 
-	public List<FeatureInfo> getChildren() {
+	List<FeatureInfo> getChildren() {
 		return children;
 	}
 
-	public FeatureInfo getParent() {
-		return parent;
-	}
-
-	public String getId() {
-		return id;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public String getDisplay() {
-		return display;
-	}
-
-	public int getLevel() {
-		return level;
-	}
-
-	public String getConfigurableDirectory() {
-		return configurableDirectory;
-	}
-
-	public List<String> getComponentIds() {
+	List<String> getComponentIds() {
 		return componentIds;
 	}
 
@@ -72,42 +55,46 @@ public class FeatureInfo {
 	public String toString() {
 		return "FeatureInfo [parent=" + parent + ", id=" + id + ", title=" + title + ", description=" + description
 				+ ", display=" + display + ", level=" + level + ", configurableDirectory=" + configurableDirectory
-				+ ", componentIds=" + componentIds + "]";
+				+ ", componentIds=" + componentIds + ", allowAbsent=" + allowAbsent + "]";
 	}
-	
-	public String getFeatureHeader( String indent ) {
+
+	String getFeatureHeader(String indent) {
 		String out = indent + "<Feature ";
-		
+
 		if ( !id.equals("") ) {
 			out += "Id='" + id + "' ";
 		}
-		
+
 		if ( !title.equals( "" ) ) {
 			out += "Title='" + title + "' ";
 		}
-		
+
 		if ( !description.equals( "" ) ) {
 			out += "Description='" + description + "' ";
 		}
-		
+
 		if ( !display.equals( "" ) ) {
 			out += "Display='" + display + "' ";
 		}
-		
+
 		if ( level != -1) {
 			out += "Level='" + level + "' ";
 		}
-		
+
 		if ( !configurableDirectory.equals( "" ) ) {
 			out += "ConfigurableDirectory='" + configurableDirectory + "' ";
 		}
-		
-		out += ">\n";
-		
+
+		if ( !allowAbsent ) {
+			out += "Absent='disallow' ";
+		}
+
+		out += "AllowAdvertise='no' >\n";
+
 		return out;
 	}
-	
-	public String getFeatureFooter( String indent ) {
+
+	String getFeatureFooter(String indent) {
 		return indent + "</Feature>\n";
 	}
 }
