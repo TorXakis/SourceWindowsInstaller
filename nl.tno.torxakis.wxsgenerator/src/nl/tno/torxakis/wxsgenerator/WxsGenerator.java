@@ -87,7 +87,7 @@ class WxsGenerator {
         String out = "";
 
         out += indent + "<Package Id='*' Keywords='Installer' Description='TorXakis Installer'\n";
-        out += indent + "\tComments='Copyright (c) 2015-" + Calendar.getInstance().get(Calendar.YEAR) + " torxakis.org' Manufacturer='torxakis.org'\n";
+        out += indent + "\tComments='Copyright (c) 2015-" + Calendar.getInstance().get(Calendar.YEAR) + " torxakis.org' Manufacturer='torxakis.org' InstallScope='perMachine'\n";
         out += indent + "\tInstallerVersion='100' Languages='1033' Compressed='yes' SummaryCodepage='1252' />\n";
 
         return out;
