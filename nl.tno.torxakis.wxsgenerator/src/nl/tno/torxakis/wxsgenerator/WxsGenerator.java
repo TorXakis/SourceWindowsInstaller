@@ -159,7 +159,7 @@ class WxsGenerator {
         out += generateTorxakisExecutable(rootFi, indent + "\t\t");
         out += generateDocumentation(rootFi, indent + "\t\t");
 
-        fi = new FeatureInfo(rootFi, getFeatureId(), "Z3", "Z3 Problem Solver", 1, false);
+        fi = new FeatureInfo(rootFi, getFeatureId(), "Z3", "Z3 Problem Solver", 1);
         rootFi.getChildren().add(fi);
         out += generateDirectory(indent + "\t\t", z3Directory, fi);
         featureInfos.add(fi);
