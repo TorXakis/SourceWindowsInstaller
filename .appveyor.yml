@@ -1,0 +1,83 @@
+# TorXakis - Model Based Testing
+# Copyright (c) 2015-2017 TNO and Radboud University
+# See LICENSE at root directory of this repository.
+
+build: off
+skip_non_tags: true
+
+version: b{build}
+# branches:
+    # only:
+    # - develop
+    # - /^hotfix.*$/
+
+init:
+- ps: $buildVersion = $env:APPVEYOR_REPO_TAG_NAME.TrimStart("v")
+- ps: Update-AppveyorBuild -Version "${buildVersion}_${env:APPVEYOR_BUILD_NUMBER}"
+- ps: $CACHE_DIR = "C:\SourceWindowsInstaller\.cache"
+- mkdir %LOCALAPPDATA%\Programs\stack
+- mkdir %LOCALAPPDATA%\Programs\stack\x86_64-windows
+
+install:
+- ps: if (-not (Test-Path ".cache")) { mkdir .cache} else { Write-Host ".cache found." }
+# obtain the stack executable
+- ps: |
+    if (-not (Test-Path "$CACHE_DIR\stack.exe")) {
+        curl -OutFile stack.zip http://www.stackage.org/stack/windows-i386 -Verbose
+        7z x $("-o" + $CACHE_DIR) stack.zip stack.exe
+    } else {
+        Write-Host "stack.exe found.";
+    }
+- choco install wixtoolset --version 3.10.3.300702
+- refreshenv
+- ps: $env:Path += ";C:\Program Files\Git\mingw64\bin;${CACHE_DIR};C:\Users\appveyor\AppData\Roaming\local\bin"
+
+before_build:
+- ps: $env:CACHE_DIR = $CACHE_DIR
+- ps: $env:BUILD_VERSION = $buildVersion
+
+build_script:
+- .\TxsCreateInstaller.bat %BUILD_VERSION% .\wxs.config
+- ps: tree $env:APPVEYOR_REPO_TAG_NAME
+
+# after_build:
+# -
+
+# before_test:
+# - 
+
+clone_folder: c:\SourceWindowsInstaller
+environment:
+  global:
+    STACK_ROOT: c:\SourceWindowsInstaller\.stack
+
+cache:
+- .stack
+- .cache
+- '%LOCALAPPDATA%\Programs\stack\x86_64-windows\ghc-integersimple-8.0.2'
+# in case the installation folder was not retrieved from cache
+- '%LOCALAPPDATA%\Programs\stack\x86_64-windows\ghc-integersimple-8.0.2.installed -> %LOCALAPPDATA%\Programs\stack\x86_64-windows\ghc-integersimple-8.0.2\bin\ghcii.sh'
+- '%LOCALAPPDATA%\Programs\stack\x86_64-windows\msys2-20150512'
+# in case the installation folder was not retrieved from cache
+- '%LOCALAPPDATA%\Programs\stack\x86_64-windows\msys2-20150512.installed -> %LOCALAPPDATA%\Programs\stack\x86_64-windows\msys2-20150512\autorebase.bat'
+# - packages -> **\packages.config  # preserve "packages" directory in the root of build folder but will reset it if packages.config is modified
+
+# test_script:
+# -
+
+# after_test:
+
+artifacts:
+- path: $(APPVEYOR_REPO_TAG_NAME)\WindowsInstaller\TorXakis.msi
+  name: installer
+
+deploy:
+- provider: GitHub
+  artifact: installer
+  draft: true
+  description: ''
+  auth_token:
+    secure: A5B6/aYi/rheRENsZLuwRYr94orrc9D+G0FVmrJUjgB9fcwmzbbupTw/lC0TzmZN
+  repository: TorXakis/TorXakis
+  on:
+    appveyor_repo_tag: true
