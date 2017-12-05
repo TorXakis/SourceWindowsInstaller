@@ -103,7 +103,7 @@ class WxsGenerator {
     }
 
     private String generateCustomActionsForYamlAndLogFiles(String indent) {
-        return indent + "<CustomAction Id='CopyYamlCA' Execute='deferred' Return='ignore' Directory='INSTALLDIR' ExeCommand='cmd /c \"copy .torxakis.yaml [%HOMEDRIVE][%HOMEPATH]\"'/>\n" +
+        return indent + "<CustomAction Id='CopyYamlCA' Execute='deferred' Return='ignore' Directory='INSTALLDIR' ExeCommand='cmd /c \"copy .torxakis.default.yaml [%HOMEDRIVE][%HOMEPATH]\\.torxakis.yaml\"'/>\n" +
                 indent + "<CustomAction Id='RemoveYamlCA' Execute='deferred' Return='ignore' Directory='ProgramFilesFolder' ExeCommand='cmd /c \"del [%HOMEDRIVE][%HOMEPATH]\\.torxakis.yaml\"' />\n" +
                 indent + "<CustomAction Id='RemoveHistCA' Execute='deferred' Return='ignore' Directory='ProgramFilesFolder' ExeCommand='cmd /c \"del [%HOMEDRIVE][%HOMEPATH]\\.torxakis-hist.txt\"' />\n" +
                 indent + "<CustomAction Id='RemoveLogFolderCA' Execute='deferred' Return='ignore' Directory='ProgramFilesFolder' ExeCommand='cmd /c \"rmdir /S /Q [%HOMEDRIVE][%HOMEPATH]\\.torxakis\"' />\n" +
@@ -179,7 +179,6 @@ class WxsGenerator {
         out += indent + "\t<File Id='" + getFileId() + "' Name='torxakisServer.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakisServer.bat' />\n";
         out += indent + "\t<File Id='" + getFileId() + "' Name='license' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\license' />\n";
         out += indent + "\t<File Id='defaultYamlFile' Name='.torxakis.default.yaml' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\.torxakis.yaml' />\n";
-        out += indent + "\t<File Id='yamlFile' Name='.torxakis.yaml' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\.torxakis.yaml' />\n";
         out += indent + "</Component>\n";
         out += indent + "\n";
 
