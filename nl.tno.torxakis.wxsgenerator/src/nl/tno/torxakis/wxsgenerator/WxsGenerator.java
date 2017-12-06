@@ -1,9 +1,7 @@
 package nl.tno.torxakis.wxsgenerator;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 class WxsGenerator {
@@ -70,12 +68,14 @@ class WxsGenerator {
         out += indent + "<Product Name='TorXakis' Id='" + java.util.UUID.randomUUID() + "' UpgradeCode='" + java.util.UUID.randomUUID() + "'\n";
         out += indent + "\tLanguage='1033' Codepage='1252' Version='" + versionNumber + "' Manufacturer='torxakis.org'>\n";
 
-        out += generatePackage(indent + "\t");
-        out += generateHomePath(indent + "\t");
-        out += generateMedia(indent + "\t");
-        out += generateTargetDir(indent + "\t");
-        out += generateFeatures(indent + "\t");
-        out += generateUi(indent + "\t");
+        String nextIndent = indent + "\t";
+        out += generatePackage(nextIndent);
+        out += generateCustomActionsForYamlAndLogFiles(nextIndent);
+        out += generateMedia(nextIndent);
+        out += generateTargetDir(nextIndent);
+        out += generateFeatures(nextIndent);
+        out += generateUi(nextIndent);
+        out += generateInstallExecuteSequence(nextIndent);
 
         out += indent + "</Product>\n";
 
@@ -102,14 +102,12 @@ class WxsGenerator {
         return out;
     }
 
-    private String generateHomePath(String indent) {
-        return indent + "<SetDirectory Id='HOMEDIR' Value='[%HOMEDRIVE][%HOMEPATH]' />\n" +
-               indent + "<Property Id=\"USERHOMEFOLDER\" >\n" +
-               indent + "\t<DirectorySearch Id=\"UserHome\" Path=\"[HOMEDIR]\" ></DirectorySearch>\n" +
-               indent + "</Property>\n" +
-               indent + "<Condition Message=\"User home directory (%HOMEPATH% and %HOMEDRIVE%) is set to '[%HOMEPATH]' in drive [%HOMEDRIVE], but it is unavailable.\">\n" +
-               indent + "\t<![CDATA[USERHOMEFOLDER]]>\n" +
-               indent + "</Condition>\n";
+    private String generateCustomActionsForYamlAndLogFiles(String indent) {
+        return indent + "<CustomAction Id='CopyYamlCA' Execute='deferred' Return='ignore' Directory='INSTALLDIR' ExeCommand='cmd /c \"copy .torxakis.default.yaml [%HOMEDRIVE][%HOMEPATH]\\.torxakis.yaml\"'/>\n" +
+                indent + "<CustomAction Id='RemoveYamlCA' Execute='deferred' Return='ignore' Directory='ProgramFilesFolder' ExeCommand='cmd /c \"del [%HOMEDRIVE][%HOMEPATH]\\.torxakis.yaml\"' />\n" +
+                indent + "<CustomAction Id='RemoveHistCA' Execute='deferred' Return='ignore' Directory='ProgramFilesFolder' ExeCommand='cmd /c \"del [%HOMEDRIVE][%HOMEPATH]\\.torxakis-hist.txt\"' />\n" +
+                indent + "<CustomAction Id='RemoveLogFolderCA' Execute='deferred' Return='ignore' Directory='ProgramFilesFolder' ExeCommand='cmd /c \"rmdir /S /Q [%HOMEDRIVE][%HOMEPATH]\\.torxakis\"' />\n" +
+                indent + "<CustomAction Id='RemoveLogFilesCA' Execute='deferred' Return='ignore' Directory='ProgramFilesFolder' ExeCommand='cmd /c \"del [%HOMEDRIVE][%HOMEPATH]\\.txs*\"' />\n";
     }
 
     private String generateTargetDir(String indent) {
@@ -117,7 +115,6 @@ class WxsGenerator {
 
         out += indent + "<Directory Id='TARGETDIR' Name='SourceDir'>\n";
 
-        out += generateHomeFolder(indent + "\t");
         out += generateProgramFilesFolder(indent + "\t");
         out += generatePathEnvironmentVariable(indent + "\t");
         out += generatePrograms(indent + "\t");
@@ -125,28 +122,6 @@ class WxsGenerator {
         out += indent + "</Directory>\n";
 
         return out;
-    }
-
-    private String generateHomeFolder(String indent) {
-        String out = "";
-
-        out += indent + "<Directory Id='HOMEDIR' Name='UserHome'>\n";
-        out += generateTorxakisConfig(rootFi, indent + "\t");
-        out += indent + "</Directory>\n";
-
-        return out;
-    }
-
-    private String generateTorxakisConfig(FeatureInfo parent, String indent) {
-        FeatureInfo fi = new FeatureInfo(parent, "yamlFeature", "Configuration", "TorXakis config YAML file", 1);
-        parent.getChildren().add(fi);
-        featureInfos.add(fi);
-        String componentId = "yamlComponent";
-        fi.getComponentIds().add(componentId);
-
-        return indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "'>\n" +
-                indent + "\t<File Id='yamlFile' Name='.torxakis.yaml' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\.torxakis.yaml'/>\n" +
-                indent + "</Component>\n";
     }
 
     private String generateProgramFilesFolder(String indent) {
@@ -232,21 +207,6 @@ class WxsGenerator {
                         indent + "\n";
     }
 
-    private String generateUi(String indent) {
-        String out = "";
-        String installerFolder = tagFolderPath + "\\WindowsInstaller\\";
-
-        out += indent + "<WixVariable Id='WixUILicenseRtf' Value='" + installerFolder + "license.rtf' />\n";
-        out += indent + "<WixVariable Id='WixUIDialogBmp' Value='" + installerFolder + "dialog.bmp' />\n";
-        out += indent + "<WixVariable Id='WixUIBannerBmp' Value='" + installerFolder + "banner.bmp' />\n";
-        out += indent + "<UI Id='UI'>\n";
-        out += indent + "\t<UIRef Id='WixUI_Mondo'/>\n";
-        out += indent + "\t<UIRef Id='WixUI_ErrorProgressText' />\n";
-        out += indent + "</UI>\n";
-
-        return out;
-    }
-
     private String generatePathEnvironmentVariable(String indent) {
         String componentId = getComponentId();
         rootFi.getComponentIds().add(componentId);
@@ -261,6 +221,24 @@ class WxsGenerator {
 
         out += indent + "</Component>\n";
 
+        return out;
+    }
+
+    private String generatePrograms(String indent) {
+        String componentId = getComponentId();
+        rootFi.getComponentIds().add(componentId);
+
+        String programMenuDir = getDirectoryId();
+
+        String out =
+                indent + "<Directory Id='" + getDirectoryId() + "' Name='Programs'>\n" +
+                        indent + "\t<Directory Id='" + programMenuDir + "' Name='TorXakis'>\n" +
+                        indent + "\t\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "'>\n" +
+                        indent + "\t\t\t<RemoveFolder Id='" + programMenuDir + "' On='uninstall' />\n" +
+                        indent + "\t\t\t<RegistryValue Root='HKCU' Key='Software\\[Manufacturer]\\[ProductName]' Type='string' Value='' KeyPath='yes' />\n" +
+                        indent + "\t\t</Component>\n" +
+                        indent + "\t</Directory>\n" +
+                        indent + "</Directory>\n";
         return out;
     }
 
@@ -290,21 +268,42 @@ class WxsGenerator {
         return out;
     }
 
-    private String generatePrograms(String indent) {
-        String componentId = getComponentId();
-        rootFi.getComponentIds().add(componentId);
+    private String generateUi(String indent) {
+        String out = "";
+        String installerFolder = tagFolderPath + "\\WindowsInstaller\\";
 
-        String programMenuDir = getDirectoryId();
+        out += indent + "<WixVariable Id='WixUILicenseRtf' Value='" + installerFolder + "license.rtf' />\n";
+        out += indent + "<WixVariable Id='WixUIDialogBmp' Value='" + installerFolder + "dialog.bmp' />\n";
+        out += indent + "<WixVariable Id='WixUIBannerBmp' Value='" + installerFolder + "banner.bmp' />\n";
+        out += indent + "<UI Id='UI'>\n";
+        out += indent + "\t<UIRef Id='WixUI_Mondo'/>\n";
+        out += indent + "\t<UIRef Id='WixUI_ErrorProgressText' />\n";
+        out += indent + "</UI>\n";
 
-        String out =
-                indent + "<Directory Id='" + getDirectoryId() + "' Name='Programs'>\n" +
-                        indent + "\t<Directory Id='" + programMenuDir + "' Name='TorXakis'>\n" +
-                        indent + "\t\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "'>\n" +
-                        indent + "\t\t\t<RemoveFolder Id='" + programMenuDir + "' On='uninstall' />\n" +
-                        indent + "\t\t\t<RegistryValue Root='HKCU' Key='Software\\[Manufacturer]\\[ProductName]' Type='string' Value='' KeyPath='yes' />\n" +
-                        indent + "\t\t</Component>\n" +
-                        indent + "\t</Directory>\n" +
-                        indent + "</Directory>\n";
+        return out;
+    }
+
+    private String generateInstallExecuteSequence(String indent) {
+        String out = "";
+
+        out += indent + "<InstallExecuteSequence>\n";
+        out += indent + "\t<Custom Action='CopyYamlCA' Before='InstallFinalize'>\n";
+        out += indent + "\t\tNOT Installed\n";
+        out += indent + "\t</Custom>\n";
+        out += indent + "\t<Custom Action='RemoveYamlCA' Before='InstallFinalize'>\n";
+        out += indent + "\t\tInstalled AND NOT UPGRADINGPRODUCTCODE\n";
+        out += indent + "\t</Custom>\n";
+        out += indent + "\t<Custom Action='RemoveHistCA' Before='InstallFinalize'>\n";
+        out += indent + "\t\tInstalled AND NOT UPGRADINGPRODUCTCODE\n";
+        out += indent + "\t</Custom>\n";
+        out += indent + "\t<Custom Action='RemoveLogFilesCA' Before='InstallFinalize'>\n";
+        out += indent + "\t\tInstalled AND NOT UPGRADINGPRODUCTCODE\n";
+        out += indent + "\t</Custom>\n";
+        out += indent + "\t<Custom Action='RemoveLogFolderCA' Before='InstallFinalize'>\n";
+        out += indent + "\t\tInstalled AND NOT UPGRADINGPRODUCTCODE\n";
+        out += indent + "\t</Custom>\n";
+        out += indent + "</InstallExecuteSequence>\n";
+
         return out;
     }
 
