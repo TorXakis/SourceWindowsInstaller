@@ -71,8 +71,16 @@ copy %ORIGINAL_LOC%\buildinfo.bat .
 call buildinfo.bat > sys/core/src/BuildInfo.hs
 ECHO Building Torxakis executable
 stack setup
-stack build -v --cabal-verbose
-
+:TryBuild
+SET TRY_COUNT=0
+stack build
+IF ERRORLEVEL 1 (
+    SET TRY_COUNT=%TRY_COUNT%+1
+    IF %TRY_COUNT% < 10 (
+        ECHO Build failed, trying again (%TRY_COUNT%)...
+        GOTO TryBuild
+    )
+)
 REM no easy way to assign a variable from command's result, so we do this
 for /f "tokens=* usebackq" %%f in (`stack.exe path --local-install-root`) do (
 	copy %%f\bin\txsserver.exe bin\txsserver.exe
@@ -132,6 +140,6 @@ ECHO Usage:	TxsCreateInstaller TorXakisVersionNumber Z3Folder CVC4Folder [NoCach
 GOTO END
 
 :TorXakisBuildFailure
-ECHO Build Failure 
+ECHO Build Failure
 
 :END
