@@ -73,11 +73,14 @@ ECHO Building Torxakis executable
 stack setup
 :TryBuild
 SET TRY_COUNT=0
+ECHO Running 'stack build'
 stack build
-IF ERRORLEVEL 1 (
+ECHO Returned from 'stack build', ErrorLevel: %ERRORLEVEL%
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO Error level %ERRORLEVEL% is not 0
     SET TRY_COUNT=%TRY_COUNT%+1
-    IF %TRY_COUNT% < 10 (
-        ECHO Build failed, trying again (%TRY_COUNT%)...
+    IF %TRY_COUNT% LSS 10 (
+        ECHO Build failed, trying again (%TRY_COUNT%)
         GOTO TryBuild
     )
 )
@@ -136,7 +139,7 @@ CD %ORIGINAL_LOC%
 GOTO END
 
 :InvalidNumberArguments
-ECHO Usage:	TxsCreateInstaller TorXakisVersionNumber Z3Folder CVC4Folder [NoCache]
+ECHO Usage:	TxsCreateInstaller TorXakisVersionNumber wxsConfigFile [NoCache]
 GOTO END
 
 :TorXakisBuildFailure
