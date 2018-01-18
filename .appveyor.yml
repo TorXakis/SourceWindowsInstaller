@@ -20,6 +20,7 @@ init:
 
 install:
 - ps: if (-not (Test-Path ".cache")) { mkdir .cache} else { Write-Host ".cache found." }
+- ps: ls .stack
 # obtain the stack executable
 - ps: |
     if (-not (Test-Path "$CACHE_DIR\stack.exe")) {
