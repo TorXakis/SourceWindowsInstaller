@@ -38,7 +38,7 @@ before_build:
 
 build_script:
 - .\TxsCreateInstaller.bat %BUILD_VERSION% .\wxs.config
-- ps: tree $env:APPVEYOR_REPO_TAG_NAME
+# - ps: tree $env:APPVEYOR_REPO_TAG_NAME
 
 # after_build:
 # -
