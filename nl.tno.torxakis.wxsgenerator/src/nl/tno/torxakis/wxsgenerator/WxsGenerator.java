@@ -173,10 +173,7 @@ class WxsGenerator {
         out += indent + "<!-- Torxakis Executable-->\n";
         out += indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' KeyPath='yes'>\n";
         out += indent + "\t<File Id='" + getFileId() + "' Name='txsserver.exe' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\txsserver.exe' />\n";
-        out += indent + "\t<File Id='" + getFileId() + "' Name='txsui.exe' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\txsui.exe' />\n";
-        out += indent + "\t<File Id='" + getFileId() + "' Name='torxakis.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakis.bat' />\n";
-        out += indent + "\t<File Id='" + getFileId() + "' Name='torxakisPort.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakisPort.bat' />\n";
-        out += indent + "\t<File Id='" + getFileId() + "' Name='torxakisServer.bat' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakisServer.bat' />\n";
+        out += indent + "\t<File Id='" + getFileId() + "' Name='torxakis.exe' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakis.exe' />\n";
         out += indent + "\t<File Id='" + getFileId() + "' Name='license' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\license' />\n";
         out += indent + "\t<File Id='defaultYamlFile' Name='.torxakis.default.yaml' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\.torxakis.yaml' />\n";
         out += indent + "</Component>\n";
