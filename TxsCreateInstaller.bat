@@ -74,14 +74,14 @@ IF NOT EXIST bin (
     mkdir bin
 )
 stack setup
-SET TRY_COUNT=0
+SET /a TRY_COUNT=0
 :TryBuild
 ECHO Running 'stack build'
 stack build
 ECHO Returned from 'stack build', ErrorLevel: %ERRORLEVEL%
 IF %ERRORLEVEL% NEQ 0 (
     ECHO Error level %ERRORLEVEL% is not 0
-    SET TRY_COUNT=%TRY_COUNT%+1
+    SET /a TRY_COUNT=%TRY_COUNT%+1
     IF %TRY_COUNT% LSS 50 (
         ECHO Build failed, trying again ( %TRY_COUNT% )
         GOTO TryBuild
