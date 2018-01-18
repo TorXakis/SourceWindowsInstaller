@@ -14,27 +14,25 @@ version: b{build}
 init:
 - ps: $buildVersion = $env:APPVEYOR_REPO_TAG_NAME.TrimStart("v")
 - ps: Update-AppveyorBuild -Version "${buildVersion}_${env:APPVEYOR_BUILD_NUMBER}"
-- ps: $CACHE_DIR = "C:\SourceWindowsInstaller\.cache"
+- ps: $STACK = "C:\SourceWindowsInstaller\.stack"
 - mkdir %LOCALAPPDATA%\Programs\stack
 - mkdir %LOCALAPPDATA%\Programs\stack\x86_64-windows
 
 install:
-- ps: if (-not (Test-Path ".cache")) { mkdir .cache} else { Write-Host ".cache found." }
-- ps: ls .stack
+- ps: if (-not (Test-Path $STACK)) { mkdir $STACK } else { Write-Host "${STACK} found." }
 # obtain the stack executable
 - ps: |
-    if (-not (Test-Path "$CACHE_DIR\stack.exe")) {
+    if (-not (Test-Path "$STACK\stack.exe")) {
         curl -OutFile stack.zip http://www.stackage.org/stack/windows-i386 -Verbose
-        7z x $("-o" + $CACHE_DIR) stack.zip stack.exe
+        7z x $("-o" + $STACK) stack.zip stack.exe
     } else {
         Write-Host "stack.exe found.";
     }
 - choco install wixtoolset --version 3.10.3.300702
 - refreshenv
-- ps: $env:Path += ";C:\Program Files\Git\mingw64\bin;${CACHE_DIR};C:\Users\appveyor\AppData\Roaming\local\bin"
+- ps: $env:Path += ";C:\Program Files\Git\mingw64\bin;${STACK};C:\Users\appveyor\AppData\Roaming\local\bin"
 
 before_build:
-- ps: $env:CACHE_DIR = $CACHE_DIR
 - ps: $env:BUILD_VERSION = $buildVersion
 
 build_script:
