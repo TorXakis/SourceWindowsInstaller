@@ -64,24 +64,38 @@ ECHO Finished!
 cd torxakis
 ECHO Removing old server and ui binaries
 del bin\txsserver.exe 2>nul
-del bin\txsui.exe     2>nul
+del bin\torxakis.exe  2>nul
 
 ECHO Creating BuildInfo.hs
 copy %ORIGINAL_LOC%\buildinfo.bat .
 call buildinfo.bat > sys/core/src/BuildInfo.hs
 ECHO Building Torxakis executable
+IF NOT EXIST bin (
+    mkdir bin
+)
 stack setup
-stack build -v --cabal-verbose
-
+SET /a TRY_COUNT=0
+:TryBuild
+ECHO Running 'stack build'
+stack build
+ECHO Returned from 'stack build', ErrorLevel: %ERRORLEVEL%
+IF %ERRORLEVEL% NEQ 0 (
+    ECHO Error level %ERRORLEVEL% is not 0 %TRY_COUNT%
+    SET /a TRY_COUNT=%TRY_COUNT%+1
+    IF %TRY_COUNT% LSS 50 (
+        ECHO Build failed, trying again %TRY_COUNT% 
+        GOTO TryBuild
+    )
+)
 REM no easy way to assign a variable from command's result, so we do this
 for /f "tokens=* usebackq" %%f in (`stack.exe path --local-install-root`) do (
 	copy %%f\bin\txsserver.exe bin\txsserver.exe
-	copy %%f\bin\txsui.exe bin\txsui.exe
+	copy %%f\bin\torxakis.exe bin\torxakis.exe
 )
 
 :CheckTorXakisBuild
 IF NOT EXIST bin\txsserver.exe GOTO TorXakisBuildFailure
-IF NOT EXIST bin\txsui.exe GOTO TorXakisBuildFailure
+IF NOT EXIST bin\torxakis.exe GOTO TorXakisBuildFailure
 cd %ORIGINAL_LOC%
 ECHO Building TorXakis finished.
 
@@ -128,10 +142,10 @@ CD %ORIGINAL_LOC%
 GOTO END
 
 :InvalidNumberArguments
-ECHO Usage:	TxsCreateInstaller TorXakisVersionNumber Z3Folder CVC4Folder [NoCache]
+ECHO Usage:	TxsCreateInstaller TorXakisVersionNumber wxsConfigFile [NoCache]
 GOTO END
 
 :TorXakisBuildFailure
-ECHO Build Failure 
+ECHO Build Failure
 
 :END

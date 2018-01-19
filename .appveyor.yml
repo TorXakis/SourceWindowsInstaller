@@ -14,31 +14,30 @@ version: b{build}
 init:
 - ps: $buildVersion = $env:APPVEYOR_REPO_TAG_NAME.TrimStart("v")
 - ps: Update-AppveyorBuild -Version "${buildVersion}_${env:APPVEYOR_BUILD_NUMBER}"
-- ps: $CACHE_DIR = "C:\SourceWindowsInstaller\.cache"
+- ps: $STACK = "C:\SourceWindowsInstaller\.stack"
 - mkdir %LOCALAPPDATA%\Programs\stack
 - mkdir %LOCALAPPDATA%\Programs\stack\x86_64-windows
 
 install:
-- ps: if (-not (Test-Path ".cache")) { mkdir .cache} else { Write-Host ".cache found." }
+- ps: if (-not (Test-Path $STACK)) { mkdir $STACK } else { Write-Host "${STACK} found." }
 # obtain the stack executable
 - ps: |
-    if (-not (Test-Path "$CACHE_DIR\stack.exe")) {
+    if (-not (Test-Path "$STACK\stack.exe")) {
         curl -OutFile stack.zip http://www.stackage.org/stack/windows-i386 -Verbose
-        7z x $("-o" + $CACHE_DIR) stack.zip stack.exe
+        7z x $("-o" + $STACK) stack.zip stack.exe
     } else {
         Write-Host "stack.exe found.";
     }
 - choco install wixtoolset --version 3.10.3.300702
 - refreshenv
-- ps: $env:Path += ";C:\Program Files\Git\mingw64\bin;${CACHE_DIR};C:\Users\appveyor\AppData\Roaming\local\bin"
+- ps: $env:Path += ";C:\Program Files\Git\mingw64\bin;${STACK};C:\Users\appveyor\AppData\Roaming\local\bin"
 
 before_build:
-- ps: $env:CACHE_DIR = $CACHE_DIR
 - ps: $env:BUILD_VERSION = $buildVersion
 
 build_script:
 - .\TxsCreateInstaller.bat %BUILD_VERSION% .\wxs.config
-- ps: tree $env:APPVEYOR_REPO_TAG_NAME
+# - ps: tree $env:APPVEYOR_REPO_TAG_NAME
 
 # after_build:
 # -
@@ -53,10 +52,9 @@ environment:
 
 cache:
 - .stack
-- .cache
-- '%LOCALAPPDATA%\Programs\stack\x86_64-windows\ghc-integersimple-8.0.2'
+- '%LOCALAPPDATA%\Programs\stack\x86_64-windows\ghc-integersimple-8.2.2'
 # in case the installation folder was not retrieved from cache
-- '%LOCALAPPDATA%\Programs\stack\x86_64-windows\ghc-integersimple-8.0.2.installed -> %LOCALAPPDATA%\Programs\stack\x86_64-windows\ghc-integersimple-8.0.2\bin\ghcii.sh'
+- '%LOCALAPPDATA%\Programs\stack\x86_64-windows\ghc-integersimple-8.2.2.installed -> %LOCALAPPDATA%\Programs\stack\x86_64-windows\ghc-integersimple-8.2.2\bin\ghcii.sh'
 - '%LOCALAPPDATA%\Programs\stack\x86_64-windows\msys2-20150512'
 # in case the installation folder was not retrieved from cache
 - '%LOCALAPPDATA%\Programs\stack\x86_64-windows\msys2-20150512.installed -> %LOCALAPPDATA%\Programs\stack\x86_64-windows\msys2-20150512\autorebase.bat'
