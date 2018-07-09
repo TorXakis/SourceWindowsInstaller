@@ -25,4 +25,4 @@ Tested with Wix version 3.10.3.300702.
 
 [1]: https://github.com/TorXakis/TorXakis/releases
 [2]: https://github.com/TorXakis/SourceWindowsInstaller
-[3]: https://ci.appveyor.com/project/keremispirli/sourcewindowsinstaller/history
+[3]: https://ci.appveyor.com/project/torxakis-admin/sourcewindowsinstaller/history
