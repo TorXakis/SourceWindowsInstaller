@@ -13,7 +13,7 @@ Tested with Wix version 3.10.3.300702.
 
 1) Tag the commit to be released in [TorXakis repository](https://github.com/TorXakis/TorXakis) with release version. The format should be: **vX.X.X** e.g. `v0.5.0`.
 
-   `git tag -a v0.8.0 -m "release 2018 Q3`
+   `git tag -a v0.8.0 -m "release 2018 Q3"`
 2) Push the tag to remote repository with: `git push --tags`
 3) Tag the latest commit in [SourceWindowsInstaller repository][2] **with the same release version (e.g. `v0.5.0`)**.
 4) Push the tag to remote repository with: `git push --tags`
