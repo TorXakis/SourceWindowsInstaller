@@ -12,7 +12,7 @@ version: b{build}
     # - /^hotfix.*$/
 
 init:
-- ps: $buildVersion = $env:APPVEYOR_REPO_TAG_NAME.TrimStart("v")
+- ps: $buildVersion = if ($env:APPVEYOR_REPO_TAG) { $env:APPVEYOR_REPO_TAG_NAME.TrimStart("v") } else {"UNDEFINED"}
 - ps: Update-AppveyorBuild -Version "${buildVersion}_${env:APPVEYOR_BUILD_NUMBER}"
 - ps: $STACK = "C:\SourceWindowsInstaller\.stack"
 - mkdir %LOCALAPPDATA%\Programs\stack
@@ -28,7 +28,7 @@ install:
     } else {
         Write-Host "stack.exe found.";
     }
-- choco install wixtoolset --version 3.10.3.300702
+- choco install wixtoolset --version 3.10.4.4718
 - refreshenv
 - ps: $env:Path += ";C:\Program Files\Git\mingw64\bin;${STACK};C:\Users\appveyor\AppData\Roaming\local\bin"
 
