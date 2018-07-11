@@ -12,7 +12,8 @@ version: b{build}
     # - /^hotfix.*$/
 
 init:
-- ps: $buildVersion = if ($env:APPVEYOR_REPO_TAG) { $env:APPVEYOR_REPO_TAG_NAME.TrimStart("v") } else {"UNDEFINED"}
+- ps: $buildVersion = "0.7.0"
+#if ($env:APPVEYOR_REPO_TAG) { $env:APPVEYOR_REPO_TAG_NAME.TrimStart("v") } else {"UNDEFINED"}
 - ps: Update-AppveyorBuild -Version "${buildVersion}_${env:APPVEYOR_BUILD_NUMBER}"
 - ps: $STACK = "C:\SourceWindowsInstaller\.stack"
 - mkdir %LOCALAPPDATA%\Programs\stack
