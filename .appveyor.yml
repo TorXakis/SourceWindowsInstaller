@@ -36,8 +36,7 @@ before_build:
 - ps: $env:BUILD_VERSION = $buildVersion
 
 build_script:
-#- .\TxsCreateInstaller.bat %BUILD_VERSION% .\wxs.config
-- .\TxsCreateInstaller.bat 0.7.0 .\wxs.config
+- .\TxsCreateInstaller.bat %BUILD_VERSION% .\wxs.config
 # - ps: tree $env:APPVEYOR_REPO_TAG_NAME
 
 # after_build:
