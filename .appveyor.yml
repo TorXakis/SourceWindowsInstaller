@@ -28,7 +28,7 @@ install:
     } else {
         Write-Host "stack.exe found.";
     }
-- choco install wixtoolset --version 3.10.3.300702
+- choco install wixtoolset --version 3.11.1
 - refreshenv
 - ps: $env:Path += ";C:\Program Files\Git\mingw64\bin;${STACK};C:\Users\appveyor\AppData\Roaming\local\bin"
 
