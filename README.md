@@ -3,7 +3,7 @@ Code for a Windows installer of TorXakis
 
 ## Dependencies
 We use [Wix](http://wixtoolset.org) for building the Windows installer.
-Tested with Wix version 3.10.3.300702.
+Tested with Wix version 3.11.1.
 
 ## Usage
 .\TxsCreateInstaller.bat 0.3.0 .\wxs.config
