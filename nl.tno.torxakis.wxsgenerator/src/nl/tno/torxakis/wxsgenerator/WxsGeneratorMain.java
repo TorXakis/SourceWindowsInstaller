@@ -67,8 +67,8 @@ public class WxsGeneratorMain {
             if (z3UnzipFolder.exists()) {
                 deleteDirectory(z3UnzipFolder);
             }
-            System.out.println(String.format("Unzipping %s to %s", z3zipFileName, z3UnzipFolderPath));
-            unzip(z3zipFile.getPath(), z3UnzipFolderPath);
+            System.out.println(String.format("Unzipping %s to %s", z3zipFileName, tagFolderPathString));    //Here we use the fact that Z3 adds a directory with the name (without extension) of the zip file
+            unzip(z3zipFile.getPath(), tagFolderPathString);
 
             String cvc4FileName = getFileNameFromUrl(cvc4Url);
             Path cvc4FolderPath = Paths.get(tagFolderPathString, cvc4FileName.substring(0, cvc4FileName.length() - 4));
