@@ -129,7 +129,7 @@ echo Done
 
 :CompileWxs
 ECHO Compiling Wxs File
-"%WIX%bin\candle" -o %TAG_NAME%\WindowsInstaller\ %TAG_NAME%\WindowsInstaller\TorXakis.wxs 
+"%WIX%bin\candle" -arch x64 -o %TAG_NAME%\WindowsInstaller\ %TAG_NAME%\WindowsInstaller\TorXakis.wxs
 ECHO Compiled.
 
 :LinkWxs

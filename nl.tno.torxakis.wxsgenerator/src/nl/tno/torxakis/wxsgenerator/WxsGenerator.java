@@ -88,7 +88,7 @@ class WxsGenerator {
 
         out += indent + "<Package Id='*' Keywords='Installer' Description='TorXakis Installer'\n";
         out += indent + "\tComments='Copyright (c) 2015-" + Calendar.getInstance().get(Calendar.YEAR) + " torxakis.org' Manufacturer='torxakis.org' InstallScope='perMachine'\n";
-        out += indent + "\tInstallerVersion='100' Languages='1033' Compressed='yes' SummaryCodepage='1252' />\n";
+        out += indent + "\tInstallerVersion='200' Languages='1033' Compressed='yes' SummaryCodepage='1252' />\n";
 
         return out;
     }
@@ -104,10 +104,10 @@ class WxsGenerator {
 
     private String generateCustomActionsForYamlAndLogFiles(String indent) {
         return indent + "<CustomAction Id='CopyYamlCA' Execute='deferred' Return='ignore' Directory='INSTALLDIR' ExeCommand='cmd /c \"copy .torxakis.default.yaml [%HOMEDRIVE][%HOMEPATH]\\.torxakis.yaml\"'/>\n" +
-                indent + "<CustomAction Id='RemoveYamlCA' Execute='deferred' Return='ignore' Directory='ProgramFilesFolder' ExeCommand='cmd /c \"del [%HOMEDRIVE][%HOMEPATH]\\.torxakis.yaml\"' />\n" +
-                indent + "<CustomAction Id='RemoveHistCA' Execute='deferred' Return='ignore' Directory='ProgramFilesFolder' ExeCommand='cmd /c \"del [%HOMEDRIVE][%HOMEPATH]\\.torxakis-hist.txt\"' />\n" +
-                indent + "<CustomAction Id='RemoveLogFolderCA' Execute='deferred' Return='ignore' Directory='ProgramFilesFolder' ExeCommand='cmd /c \"rmdir /S /Q [%HOMEDRIVE][%HOMEPATH]\\.torxakis\"' />\n" +
-                indent + "<CustomAction Id='RemoveLogFilesCA' Execute='deferred' Return='ignore' Directory='ProgramFilesFolder' ExeCommand='cmd /c \"del [%HOMEDRIVE][%HOMEPATH]\\.txs*\"' />\n";
+                indent + "<CustomAction Id='RemoveYamlCA' Execute='deferred' Return='ignore' Directory='ProgramFiles64Folder' ExeCommand='cmd /c \"del [%HOMEDRIVE][%HOMEPATH]\\.torxakis.yaml\"' />\n" +
+                indent + "<CustomAction Id='RemoveHistCA' Execute='deferred' Return='ignore' Directory='ProgramFiles64Folder' ExeCommand='cmd /c \"del [%HOMEDRIVE][%HOMEPATH]\\.torxakis-hist.txt\"' />\n" +
+                indent + "<CustomAction Id='RemoveLogFolderCA' Execute='deferred' Return='ignore' Directory='ProgramFiles64Folder' ExeCommand='cmd /c \"rmdir /S /Q [%HOMEDRIVE][%HOMEPATH]\\.torxakis\"' />\n" +
+                indent + "<CustomAction Id='RemoveLogFilesCA' Execute='deferred' Return='ignore' Directory='ProgramFiles64Folder' ExeCommand='cmd /c \"del [%HOMEDRIVE][%HOMEPATH]\\.txs*\"' />\n";
     }
 
     private String generateTargetDir(String indent) {
@@ -128,7 +128,7 @@ class WxsGenerator {
         String out = "";
         FeatureInfo fi;
 
-        out += indent + "<Directory Id='ProgramFilesFolder' Name='PFiles'>\n";
+        out += indent + "<Directory Id='ProgramFiles64Folder' Name='PFiles'>\n";
         out += indent + "\t<Directory Id='INSTALLDIR' Name='TorXakis'>\n";
 
         out += generateTorxakisExecutable(rootFi, indent + "\t\t");
@@ -171,7 +171,7 @@ class WxsGenerator {
         fi.getComponentIds().add(componentId);
 
         out += indent + "<!-- Torxakis Executable-->\n";
-        out += indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' KeyPath='yes'>\n";
+        out += indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' KeyPath='yes' Win64='yes'>\n";
         out += indent + "\t<File Id='" + getFileId() + "' Name='txsserver.exe' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\txsserver.exe' />\n";
         out += indent + "\t<File Id='" + getFileId() + "' Name='torxakis.exe' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\bin\\torxakis.exe' />\n";
         out += indent + "\t<File Id='" + getFileId() + "' Name='license' DiskId='1' Source='" + tagFolderPath + "\\torxakis\\license' />\n";
@@ -196,7 +196,7 @@ class WxsGenerator {
                 indent + "<!-- Torxakis Documentation -->\n" +
                         indent + "<Directory Id='" + getDirectoryId() + "' Name='Docs'>\n" +
                         indent + "\n" +
-                        indent + "\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "'>\n" +
+                        indent + "\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' Win64='yes'>\n" +
                         indent + "\t\t<File Id='" + getFileId() + "' Name='Modelling Examples.html' DiskId='1' Source='" + tagFolderPath + "\\WindowsInstaller\\Modelling Examples.html' KeyPath='yes'/>\n" +
                         indent + "\t</Component>\n" +
                         indent + "\n" +
@@ -208,7 +208,7 @@ class WxsGenerator {
         String componentId = getComponentId();
         rootFi.getComponentIds().add(componentId);
 
-        String out = indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' KeyPath='yes'>\n";
+        String out = indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' KeyPath='yes' Win64='yes'>\n";
 
         out += indent + "\t<Environment Id='" + getEnvironmentId() + "' Name='PATH' Value='[INSTALLDIR]' Permanent='no' Part='first' Action='set' System='yes' />\n";
 
@@ -230,7 +230,7 @@ class WxsGenerator {
         String out =
                 indent + "<Directory Id='" + getDirectoryId() + "' Name='Programs'>\n" +
                         indent + "\t<Directory Id='" + programMenuDir + "' Name='TorXakis'>\n" +
-                        indent + "\t\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "'>\n" +
+                        indent + "\t\t<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' Win64='yes'>\n" +
                         indent + "\t\t\t<RemoveFolder Id='" + programMenuDir + "' On='uninstall' />\n" +
                         indent + "\t\t\t<RegistryValue Root='HKCU' Key='Software\\[Manufacturer]\\[ProductName]' Type='string' Value='' KeyPath='yes' />\n" +
                         indent + "\t\t</Component>\n" +
@@ -338,7 +338,7 @@ class WxsGenerator {
             String componentId = getComponentId();
             featureInfo.getComponentIds().add(componentId);
 
-            out += indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' KeyPath='yes'>\n";
+            out += indent + "<Component Id='" + componentId + "' Guid='" + java.util.UUID.randomUUID() + "' KeyPath='yes' Win64='yes'>\n";
 
             for (TFile file : files) {
                 out += generateFile(indent + "\t", file);
