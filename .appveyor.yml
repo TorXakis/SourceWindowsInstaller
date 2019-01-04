@@ -75,7 +75,7 @@ deploy:
   draft: true
   description: ''
   auth_token:
-    secure: A5B6/aYi/rheRENsZLuwRYr94orrc9D+G0FVmrJUjgB9fcwmzbbupTw/lC0TzmZN
+    secure: X18bNvTEaVreQSwPS5og9eYv7YHG3u5QvzotRArepctUl1gXtJCIPGbTMQiwcj4b
   repository: TorXakis/TorXakis
   on:
     appveyor_repo_tag: true
