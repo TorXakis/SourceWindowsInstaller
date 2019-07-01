@@ -23,7 +23,7 @@ install:
 # obtain the stack executable
 - ps: |
     if (-not (Test-Path "$STACK\stack.exe")) {
-        curl -OutFile stack.zip http://www.stackage.org/stack/windows-i386 -Verbose
+        curl  -Verbose -OutFile stack.zip https://github.com/commercialhaskell/stack/releases/download/v2.1.1/stack-2.1.1-windows-x86_64.zip
         7z x $("-o" + $STACK) stack.zip stack.exe
     } else {
         Write-Host "stack.exe found.";
