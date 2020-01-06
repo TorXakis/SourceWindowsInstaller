@@ -23,12 +23,12 @@ install:
 # obtain the stack executable
 - ps: |
     if (-not (Test-Path "$STACK\stack.exe")) {
-        curl  -Verbose -OutFile stack.zip https://github.com/commercialhaskell/stack/releases/download/v2.1.1/stack-2.1.1-windows-x86_64.zip
+        curl -Verbose -OutFile stack.zip https://github.com/commercialhaskell/stack/releases/download/v2.1.3/stack-2.1.3-windows-x86_64.zip
         7z x $("-o" + $STACK) stack.zip stack.exe
     } else {
         Write-Host "stack.exe found.";
     }
-- choco install wixtoolset --version 3.11.1
+- choco install wixtoolset --version 3.11.2
 - refreshenv
 - ps: $env:Path += ";C:\Program Files\Git\mingw64\bin;${STACK};C:\Users\appveyor\AppData\Roaming\local\bin"
 
@@ -43,7 +43,7 @@ build_script:
 # -
 
 # before_test:
-# - 
+# -
 
 clone_folder: c:\SourceWindowsInstaller
 environment:
